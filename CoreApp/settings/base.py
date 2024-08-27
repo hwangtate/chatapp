@@ -19,6 +19,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # own apps
+    "accounts.apps.AccountsConfig",
+    # third party apps
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -33,6 +37,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "CoreApp.urls"
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 TEMPLATES = [
     {
@@ -71,6 +76,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
