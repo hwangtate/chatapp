@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # own apps
+    "accounts.apps.AccountsConfig",
 ]
 
 MIDDLEWARE = [
@@ -33,6 +35,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "CoreApp.urls"
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 TEMPLATES = [
     {
