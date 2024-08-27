@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # own apps
     "accounts.apps.AccountsConfig",
+    # third parties
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
