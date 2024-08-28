@@ -33,9 +33,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "date_joined",
         )
 
-    def validate(self, instance):
-        password = instance["password"]
-        password2 = instance["password2"]
+    def validate(self, data):
+        password = data["password"]
+        password2 = data["password2"]
 
         if len(password) < 7:
             raise ValidationError("Password must be at least 8 characters")
@@ -61,10 +61,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         if password != password2:
             raise ValidationError({"message": "Both password must match"})
 
-        if CustomUser.objects.filter(email=instance["email"]).exists():
+        if CustomUser.objects.filter(email=data["email"]).exists():
             raise ValidationError({"message": "Email already taken!"})
 
-        return instance
+        return data
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -84,17 +84,17 @@ class UserLoginSerializer(serializers.Serializer):
         model = CustomUser
         fields = ("email", "password")
 
-    def validate(self, instance):
-        self.email = instance["email"]
-        self.password = instance["password"]
+    def validate(self, data):
+        email = data["email"]
+        password = data["password"]
 
         try:
-            self.user = CustomUser.objects.get(email=self.email)
+            user = CustomUser.objects.get(email=email)
 
         except CustomUser.DoesNotExist:
             raise ValidationError({"message": "Email doesn't exist!"})
 
-        if not self.user.check_password(self.password):
+        if not user.check_password(password):
             raise ValidationError({"message": "Invalid password"})
 
-        return instance
+        return data

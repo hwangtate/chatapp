@@ -1,15 +1,12 @@
 from django.contrib.auth import login, logout
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
-from .permissions import IsAdminUser, IsOwner
+from .permissions import IsAdminUser
 
 
 @api_view(["GET"])
@@ -29,7 +26,7 @@ def user_detail(request, pk):
 
 
 @api_view(["GET"])
-@permission_classes([IsOwner])
+@permission_classes([IsAuthenticated])
 def user_profile(request):
     user = request.user
     serializer = UserSerializer(user)
@@ -60,14 +57,14 @@ def user_login(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    login(request, serializer.user)
+    login(request, CustomUser.objects.get(email=serializer.data["email"]))
 
-    response = {
+    data = {
         "success": True,
-        "email": serializer.email,
+        "email": serializer.data["email"],
     }
 
-    return Response(response, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
