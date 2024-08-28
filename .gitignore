@@ -2,7 +2,7 @@
 
 .env
 
-CoreApp/__pycache__/*
+coreapp/__pycache__/*
 *.pyc
 
 poetry.lock

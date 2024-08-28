@@ -26,7 +26,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "CoreApp.middleware.HealthCheckMiddleware",
+    "coreapp.middleware.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -36,7 +36,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "CoreApp.urls"
+ROOT_URLCONF = "coreapp.urls"
 AUTH_USER_MODEL = "accounts.CustomUser"
 
 TEMPLATES = [
@@ -55,7 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "CoreApp.wsgi.application"
+WSGI_APPLICATION = "coreapp.wsgi.application"
 
 
 # Password validation
@@ -77,7 +77,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
+    "DEFAULT_PERMISSION_CLASSES": [  # 기본적으로 모든 api에 적용 되는 permissionclass
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
