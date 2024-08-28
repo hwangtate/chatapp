@@ -59,6 +59,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                 {"password": "Password must contain at least one special character."}
             )
 
+        if re.search(r"(.)\1\1", password):
+            raise ValidationError(
+                "Password must not contain three consecutive identical characters."
+            )
+
         if password != password2:
             raise ValidationError({"message": "Both password must match"})
 
