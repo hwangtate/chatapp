@@ -7,13 +7,15 @@ import re
 
 
 class UserSerializer(serializers.ModelSerializer):
+    last_login = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
+    date_joined = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
+
     class Meta:
         model = CustomUser
-        exclude = ["password", "first_name", "last_name"]
+        exclude = ["password"]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
