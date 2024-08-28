@@ -1,7 +1,8 @@
-# CHATTING_APP_WITH_DJANGO
-장고를 이용하여 채팅 웹 서비스를 구현하는 서버코드 입니다.
+# ACCOUNTS_API_WITH_DJANGO
+장고를 이용하여 Account에 관련된 모든 API를 구현하는 서버코드 입니다.
 ## 프로젝트 소개
-이 프로젝트는 채팅 앱 서비스를 만드는 것을 목표로 하고 있습니다. Accounts 앱 부터 Websocket 및 Django Channels를 사용해 채팅앱을 구현하는 것을 목표로 합니다.
+이 프로젝트는 모든 서비스에서 재사용 가능한 Account API를 만들기 위해서 
+모든 코드를 커스텀에 용이하게 구현하는 것을 목표로 합니다. 
 
 ## 참여 인원
 <table>
@@ -68,7 +69,7 @@
 - [ ] Change Email API
 - [ ] Find Password API
 - [ ] Reset Password API
-## Chat App 기능구현 현황
-- [X] flow chart 구상중...
+- [ ] Social Register
+- [ ] Social Login
 
 
