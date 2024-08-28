@@ -58,17 +58,17 @@
 └─ templates
 ```
 ## Accounts App 기능구현 현황
--[X] User List API
--[X] User Detail API
--[X] Profile API
--[X] Register API
--[X] Login API
--[X] Logout API
--[ ] Email Auth API (register)
--[ ] Change Email API
--[ ] Find Password API
--[ ] Reset Password API
+- [X] User List API
+- [X] User Detail API
+- [X] Profile API
+- [X] Register API
+- [X] Login API
+- [X] Logout API
+- [ ] Email Auth API (register)
+- [ ] Change Email API
+- [ ] Find Password API
+- [ ] Reset Password API
 ## Chat App 기능구현 현황
--[X] flow chart 구상중...
+- [X] flow chart 구상중...
 
 
