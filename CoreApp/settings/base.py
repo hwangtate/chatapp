@@ -77,7 +77,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
+    "DEFAULT_PERMISSION_CLASSES": [  # 기본적으로 모든 api에 적용 되는 permissionclass
         "rest_framework.permissions.IsAuthenticated",
     ],
 }

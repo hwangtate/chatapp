@@ -1,14 +1,14 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login, logout
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError, ParseError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 
 from accounts.models import CustomUser
-from .serializers import UserSerializer, UserRegisterSerializer
+from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
 from .permissions import IsAdminUser, IsOwner
 
 
@@ -43,6 +43,40 @@ def user_register(request):
 
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        response = {
+            "success": True,
+            "user": serializer.data,
+        }
+        return Response(response, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def user_login(request):
+    serializer = UserLoginSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    login(request, serializer.user)
+
+    response = {
+        "success": True,
+        "email": serializer.email,
+    }
+
+    return Response(response, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    logout(request)
+
+    response = {
+        "success": True,
+    }
+
+    return Response(response, status=status.HTTP_200_OK)
