@@ -57,7 +57,8 @@ def user_register(request):
 
         response = {
             "success": True,
-            "user": serializer.data["email"],
+            "email": serializer.data["email"],
+            "username": serializer.data["username"],
         }
 
         return Response(response, status=status.HTTP_201_CREATED)
@@ -73,11 +74,14 @@ def user_login(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    login(request, CustomUser.objects.get(email=serializer.data["email"]))
+    user = CustomUser.objects.get(email=serializer.data["email"])
+
+    login(request, user)
 
     data = {
         "success": True,
         "email": serializer.data["email"],
+        "username": user.username,
     }
 
     return Response(data, status=status.HTTP_200_OK)
