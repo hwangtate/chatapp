@@ -75,9 +75,7 @@ def activate(request, uidb64, token):
             {"message": "Account activated successfully."}, status=status.HTTP_200_OK
         )
     else:
-        return Response(
-            {"error": "Activation link is invalid!"}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Errors..."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
