@@ -1,11 +1,7 @@
 from django.contrib.auth import login, logout
-from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.core.mail import send_mail
-from django.conf import settings
+from django.utils.http import urlsafe_base64_decode
 
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -14,6 +10,7 @@ from accounts.models import CustomUser
 from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
 from .permissions import IsAdminUser
 from .tokens import account_activation_token
+from .mail import send_activation_email
 
 
 @api_view(["GET"])
@@ -48,19 +45,7 @@ def user_register(request):
     if serializer.is_valid():
         user = serializer.save()
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = account_activation_token.make_token(user)
-        activation_link = reverse("activate", kwargs={"uidb64": uid, "token": token})
-        activation_url = f"{request.scheme}://{request.get_host()}{activation_link}"
-
-        subject = "Activate your Account"
-        message = (
-            f"Hi {serializer.data['username']},\n\n"
-            f"Please click the link below to activate your account:\n{activation_url}"
-        )
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [serializer.data["email"]]
-        send_mail(subject, message, email_from, recipient_list)
+        send_activation_email(user, request)
 
         response = {
             "success": True,
@@ -84,6 +69,7 @@ def activate(request, uidb64, token):
 
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
+        user.email_is_verified = True
         user.save()
         return Response(
             {"message": "Account activated successfully."}, status=status.HTTP_200_OK
