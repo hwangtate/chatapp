@@ -41,11 +41,13 @@
 ├─ accounts
 │  ├─ admin.py
 │  ├─ apps.py
+│  ├─ mail.py
 │  ├─ manager.py
 │  ├─ models.py
 │  ├─ permissions.py
 │  ├─ serializers.py
 │  ├─ tests.py
+│  ├─ tokens.py
 │  ├─ urls.py
 │  └─ views.py
 ├─ coreapp
@@ -66,11 +68,11 @@
 - [X] Register API
 - [X] Login API
 - [X] Logout API
-- [ ] Email Auth API (register)
+- [X] Email Auth API (register)
 - [ ] Change Email API
 - [ ] Find Password API
 - [ ] Reset Password API
-- [ ] Social Register
-- [ ] Social Login
+- [ ] Social Register API
+- [ ] Social Login API
 
 
