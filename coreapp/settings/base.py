@@ -26,7 +26,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "coreapp.middleware.HealthCheckMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -34,6 +33,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # custom middlewares
+    "coreapp.middleware.HealthCheckMiddleware",
+    # third party middlewares
+    "django_session_timeout.middleware.SessionTimeoutMiddleware",
 ]
 
 ROOT_URLCONF = "coreapp.urls"
@@ -103,3 +106,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SESSION_EXPIRE_SECONDS = 3000
+SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+SESSION_TIMEOUT_REDIRECT = "/api/v1/user/login"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
