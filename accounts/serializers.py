@@ -100,6 +100,9 @@ class UserLoginSerializer(serializers.Serializer):
         except CustomUser.DoesNotExist:
             raise ValidationError({"message": "Email doesn't exist!"})
 
+        if not user.is_active:
+            raise ValidationError({"message": "User is not active!"})
+
         if not user.check_password(password):
             raise ValidationError({"message": "Invalid password"})
 
