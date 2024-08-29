@@ -47,13 +47,13 @@ def user_register(request):
 
         send_activation_email(user, request)
 
-        response = {
+        data = {
             "success": True,
             "email": serializer.data["email"],
             "username": serializer.data["username"],
         }
 
-        return Response(response, status=status.HTTP_201_CREATED)
+        return Response(data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -106,8 +106,8 @@ def user_login(request):
 def user_logout(request):
     logout(request)
 
-    response = {
+    data = {
         "success": True,
     }
 
-    return Response(response, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_200_OK)
