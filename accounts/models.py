@@ -11,9 +11,10 @@ class CustomUser(AbstractUser, PermissionsMixin):
         max_length=50, blank=True, unique=False, default="anonym"
     )
 
+    email_is_verified = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
