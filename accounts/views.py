@@ -1,4 +1,7 @@
 from django.contrib.auth import login, logout
+from django.core.mail import send_mail
+from django.conf import settings
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -39,11 +42,24 @@ def user_register(request):
     serializer = UserRegisterSerializer(data=request.data)
 
     if serializer.is_valid():
-        serializer.save()
+        user = serializer.save()
+
+        subject = "welcome to AccountsAPI"
+        message = (
+            f"Hi {serializer.data['username']}, thank you for registering in AccountAPI"
+        )
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [serializer.data["email"]]
+
+        send_mail(subject, message, email_from, recipient_list)
+
+        login(request, user)
+
         response = {
             "success": True,
-            "user": serializer.data,
+            "user": serializer.data["email"],
         }
+
         return Response(response, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
