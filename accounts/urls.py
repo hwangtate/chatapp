@@ -9,7 +9,9 @@ urlpatterns = [
     path("activate/<uidb64>/<token>/", views.activate, name="activate"),
     path("user/login/", views.user_login, name="user_login"),
     path("user/logout/", views.user_logout, name="user_logout"),
-    path("change-email/", views.change_email, name="change_email"),
+    path(
+        "user/profile/change-email/", views.user_change_email, name="user_change_email"
+    ),
     # path("change-password/", views.change_password, name="change_password"),
     # path("find-password/", views.find_password, name="find_password"),
 ]

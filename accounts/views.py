@@ -7,7 +7,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.models import CustomUser
-from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
+from .serializers import (
+    UserSerializer,
+    UserRegisterSerializer,
+    UserLoginSerializer,
+    UserChangeEmailSerializer,
+)
 from .permissions import IsAdminUser
 from .tokens import account_activation_token
 from .mail import send_activation_email
@@ -111,10 +116,28 @@ def user_logout(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["GET", "POST"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def user_change_email(request):
-    pass
+    serializer = UserChangeEmailSerializer(data=request.data)
+
+    if serializer.is_valid():
+        user = CustomUser.objects.get(email=serializer.data["email"])
+        user.email = serializer.data["new_email"]
+        user.is_active = False
+        user.save()
+
+        send_activation_email(user, request)
+
+        data = {
+            "success": True,
+            "email": serializer.data["new_email"],
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET", "POST"])
