@@ -8,7 +8,7 @@
 <table>
   <tbody>
     <tr>
-      <td align="center"><a href="https://github.com/hwangtate"><img src="https://avatars.githubusercontent.com/u/139641065?s=64&v=4" width="100px;" alt=""/><br /><sub><b>BE 4기 황태영 </b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/hwangtate"><img src="https://avatars.githubusercontent.com/u/139641065?s=64&v=4" width="100px;" alt=""/><br /><sub><b>개친자 황태영</b></sub></a><br /></td>
     </tr>
   </tbody>
 </table>
