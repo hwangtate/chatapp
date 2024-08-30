@@ -107,3 +107,15 @@ class UserLoginSerializer(serializers.Serializer):
             raise ValidationError({"message": "Invalid password"})
 
         return data
+
+
+class UserChangeEmailSerializer(serializers.Serializer):
+    pass
+
+
+class UserFindPasswordSerializer(serializers.Serializer):
+    pass
+
+
+class UserResetPasswordSerializer(serializers.Serializer):
+    pass

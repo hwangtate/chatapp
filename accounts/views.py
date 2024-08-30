@@ -109,3 +109,21 @@ def user_logout(request):
     }
 
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def user_change_email(request):
+    pass
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def user_find_password(request):
+    pass
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def user_reset_password(request):
+    pass
