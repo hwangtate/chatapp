@@ -1,8 +1,9 @@
 # ACCOUNTS_API_WITH_DJANGO
-장고를 이용하여 Account에 관련된 모든 API를 구현하는 서버코드 입니다.
+Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 구현하는 서버코드 입니다.
 ## 프로젝트 소개
-이 프로젝트는 모든 서비스에서 재사용 가능한 Account API를 만들기 위해서 
-모든 코드를 커스텀에 용이하게 구현하는 것을 목표로 합니다. 
+이 프로젝트는 django-allauth를 쓰지 않고 모든 서비스에서 재사용 가능한 Account API를 만들기 위해서 
+모든 코드를 커스텀에 용이하게 구현하는 것을 목표로 합니다.
+( 이번 챌린지는 매우 어렵게 느껴지기 때문에 언제 끝날지는 미지수....! )
 
 ## 참여 인원
 <table>
@@ -62,17 +63,19 @@
 └─ templates
 ```
 ## Accounts App 기능구현 현황
-- [X] User List API
-- [X] User Detail API
-- [X] Profile API
-- [X] Register API
-- [X] Login API
-- [X] Logout API
-- [X] Email Auth API (register)
-- [ ] Change Email API
-- [ ] Find Password API
-- [ ] Reset Password API
-- [ ] Social Register API
-- [ ] Social Login API
+⭐ 이모티콘은 제가 시도해보고 느낀 난이도를 나타냈습니다
+- [X] ⭐ User List API 
+- [X] ⭐ User Detail API
+- [X] ⭐ Profile API
+- [X] ⭐⭐ Register API
+- [X] ⭐ Login API
+- [X] ⭐ Logout API
+- [X] ⭐⭐ Email Auth API (register)
+- [ ] ⭐⭐⭐⭐ Change Email API (confirm mail...)
+- [ ] ⭐⭐⭐⭐ Find Password API (find mail...)
+- [ ] ⭐⭐⭐ Reset Password API 
+- [ ] ⭐⭐⭐⭐⭐ Social Register API
+- [ ] ⭐⭐⭐⭐⭐ Social Login API
+
 
 
