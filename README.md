@@ -73,7 +73,7 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 - [X] ⭐⭐ Email Auth API (register)
 - [ ] ⭐⭐⭐⭐ Change Email API (confirm mail...)
 - [ ] ⭐⭐⭐⭐ Find Password API (find mail...)
-- [ ] ⭐⭐⭐ Reset Password API 
+- [ ] ⭐⭐⭐⭐ Reset Password API (confirm mail...)
 - [ ] ⭐⭐⭐⭐⭐ Social Register API
 - [ ] ⭐⭐⭐⭐⭐ Social Login API
 
