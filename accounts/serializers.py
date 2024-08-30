@@ -12,7 +12,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        exclude = ["password"]
+        exclude = [
+            "id",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "email_is_verified",
+            "groups",
+            "user_permissions",
+            "password",
+        ]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -32,6 +41,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "last_login",
             "date_joined",
+            "email_is_verified",
+            "groups",
+            "user_permissions",
         )
 
     def validate(self, data):
@@ -105,35 +117,5 @@ class UserLoginSerializer(serializers.Serializer):
         return data
 
 
-class UserChangeEmailSerializer(serializers.ModelSerializer):
-    new_email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = ("new_email", "password")
-
-    def validate(self, data):
-        new_email = data["new_email"]
-        password = data["password"]
-
-        user = CustomUser.objects.get(email=data["email"])
-
-        if user.email == new_email:
-            raise ValidationError("New email is same as your current email.")
-
-        if new_email == CustomUser.objects.filter(email=data["email"]).exists():
-            raise ValidationError("Email already taken!")
-
-        if not user.check_password(password):
-            raise ValidationError("Invalid password!")
-
-        return data
-
-
 class UserFindPasswordSerializer(serializers.Serializer):
-    pass
-
-
-class UserResetPasswordSerializer(serializers.Serializer):
     pass
