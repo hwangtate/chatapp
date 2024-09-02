@@ -10,7 +10,7 @@ from .tokens import account_activation_token, account_verification_token
 def send_activation_mail(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = account_activation_token.make_token(user)
-    activation_link = reverse("activate", kwargs={"uidb64": uid, "token": token})
+    activation_link = reverse("activate_user", kwargs={"uidb64": uid, "token": token})
     activation_url = f"{request.scheme}://{request.get_host()}{activation_link}"
 
     subject = "Confirm your Account"
