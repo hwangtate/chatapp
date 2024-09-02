@@ -14,10 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         exclude = [
             "id",
-            "is_active",
             "is_staff",
             "is_superuser",
-            "email_is_verified",
             "groups",
             "user_permissions",
             "password",
@@ -117,5 +115,26 @@ class UserLoginSerializer(serializers.Serializer):
         return data
 
 
-class UserFindPasswordSerializer(serializers.Serializer):
-    pass
+class UserChangeEmailSerializer(serializers.Serializer):
+    old_email = serializers.EmailField()
+    new_email = serializers.EmailField()
+
+    def validate(self, data):
+        old_email = data["old_email"]
+        new_email = data["new_email"]
+
+        try:
+            user = CustomUser.objects.get(email=old_email)
+        except CustomUser.DoesNotExist:
+            raise ValidationError({"message": "Email doesn't exist!"})
+
+        if CustomUser.objects.filter(email=new_email).exists():
+            raise ValidationError({"message": "Email already taken!"})
+
+        return data
+
+    def update(self, user, validated_data):
+        user.email = validated_data.get("new_email")
+        user.email_is_verified = False
+        user.save()
+        return user
