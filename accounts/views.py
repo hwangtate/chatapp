@@ -15,7 +15,7 @@ from .serializers import (
     UserResetPasswordSerializer,
 )
 from .tokens import account_activation_token, account_verification_token
-from .mail import send_activation_mail, send_change_email_mail
+from .mail import EmailService
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -49,7 +49,8 @@ def user_register(request):
     if serializer.is_valid():
         user = serializer.save()
 
-        send_activation_mail(user, request)
+        email_service = EmailService(user, request)
+        email_service.send_activation_mail(account_activation_token)
 
         data = {
             "success": True,
@@ -124,7 +125,8 @@ def user_change_email(request):
         user = CustomUser.objects.get(email=serializer.validated_data["old_email"])
         user = serializer.update(user, serializer.validated_data)
 
-        send_change_email_mail(user, request)
+        email_service = EmailService(user, request)
+        email_service.send_change_email_mail(account_verification_token)
 
         return Response(
             {
