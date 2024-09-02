@@ -4,39 +4,46 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .tokens import account_activation_token, account_verification_token
 
+class EmailService:
+    def __init__(self, user, request):
+        self.user = user
+        self.request = request
+        self.email_from = settings.EMAIL_HOST_USER
+        self.uid = urlsafe_base64_encode(force_bytes(user.pk))
+        self.recipient_list = [user.email]
 
-def send_activation_mail(user, request):
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = account_activation_token.make_token(user)
-    activation_link = reverse("activate_user", kwargs={"uidb64": uid, "token": token})
-    activation_url = f"{request.scheme}://{request.get_host()}{activation_link}"
+    def get_activation_token(self, token_generator):
+        return token_generator.make_token(self.user)
 
-    subject = "Confirm your Account"
-    message = (
-        f"Hi {user.username},\n\n"
-        f"Please click the link below to confirm your account:\n{activation_url}"
-    )
-    email_from = settings.EMAIL_HOST_USER
-    recipient_list = [user.email]
+    def get_url(self, view_name, token):
+        link = reverse(view_name, kwargs={"uidb64": self.uid, "token": token})
+        return f"{self.request.scheme}://{self.request.get_host()}{link}"
 
-    send_mail(subject, message, email_from, recipient_list)
+    def send_email(self, subject, message):
+        send_mail(subject, message, self.email_from, self.recipient_list)
 
+    def send_activation_mail(self, token_generator):
+        token = self.get_activation_token(token_generator)
+        activation_url = self.get_url("activate_user", token)
 
-def send_change_email_mail(user, request):
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = account_verification_token.make_token(user)
-    verification_link = reverse("verify_email", kwargs={"uidb64": uid, "token": token})
-    verification_url = f"{request.scheme}://{request.get_host()}{verification_link}"
+        subject = "Confirm your Account"
+        message = (
+            f"Hi {self.user.username},\n\n"
+            f"Please click the link below to confirm your account:\n{activation_url}"
+        )
 
-    subject = "Confirm Your Email Change"
-    message = (
-        f"Hi {user.username},\n\n"
-        f"We received a request to change the email address associated with your account.\n\n"
-        f"To confirm this change, please click the link below:\n{verification_url}"
-    )
-    email_from = settings.EMAIL_HOST_USER
-    recipient_list = [user.email]
+        self.send_email(subject, message)
 
-    send_mail(subject, message, email_from, recipient_list)
+    def send_change_email_mail(self, token_generator):
+        token = self.get_activation_token(token_generator)
+        verification_url = self.get_url("verify_email", token)
+
+        subject = "Confirm Your Email Change"
+        message = (
+            f"Hi {self.user.username},\n\n"
+            f"We received a request to change the email address associated with your account.\n\n"
+            f"To confirm this change, please click the link below:\n{verification_url}"
+        )
+
+        self.send_email(subject, message)
