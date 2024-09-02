@@ -23,22 +23,6 @@ from .tokens import (
 from .mail import send_activation_mail, send_change_email_mail, send_reset_password_mail
 
 
-@api_view(["GET"])
-@permission_classes([IsAdminUser])
-def user_list(request):
-    user = CustomUser.objects.all()
-    serializer = UserSerializer(user, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-@permission_classes([IsAdminUser])
-def user_detail(request, pk):
-    user = CustomUser.objects.get(pk=pk)
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
-
-
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
