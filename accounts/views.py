@@ -11,6 +11,7 @@ from .serializers import (
     UserSerializer,
     UserRegisterSerializer,
     UserLoginSerializer,
+    UserChangeEmailSerializer,
 )
 from .permissions import IsAdminUser
 from .tokens import account_activation_token
@@ -133,4 +134,17 @@ def user_logout(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def user_change_email(request):
-    pass
+    serializer = UserChangeEmailSerializer(data=request.data)
+
+    if serializer.is_valid():
+        user = CustomUser.objects.get(email=serializer.validated_data["old_email"])
+        user = serializer.update(user, serializer.validated_data)
+
+        return Response(
+            {
+                "success": True,
+                "email": serializer.data["new_email"],
+            }
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

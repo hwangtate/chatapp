@@ -119,3 +119,27 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserFindPasswordSerializer(serializers.Serializer):
     pass
+
+
+class UserChangeEmailSerializer(serializers.Serializer):
+    old_email = serializers.EmailField()
+    new_email = serializers.EmailField()
+
+    def validate(self, data):
+        old_email = data["old_email"]
+        new_email = data["new_email"]
+
+        try:
+            user = CustomUser.objects.get(email=old_email)
+        except CustomUser.DoesNotExist:
+            raise ValidationError({"message": "Email doesn't exist!"})
+
+        if CustomUser.objects.filter(email=new_email).exists():
+            raise ValidationError({"message": "Email already taken!"})
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get("new_email")
+        instance.save()
+        return instance
