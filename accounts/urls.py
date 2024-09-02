@@ -13,4 +13,14 @@ urlpatterns = [
     path("user/change-email/", views.user_change_email, name="user_change_email"),
     path("verification/<uidb64>/<token>/", views.verify_email, name="verify_email"),
     # path("find-password/", views.find_password, name="find_password"),
+    path(
+        "user/send-mail-reset-password/",
+        views.send_mail_reset_password,
+        name="send_mail_reset_password",
+    ),
+    path(
+        "user/reset-passowrd/<uidb64>/<token>/",
+        views.reset_password,
+        name="reset_password",
+    ),
 ]

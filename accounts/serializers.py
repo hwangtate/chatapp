@@ -7,6 +7,7 @@ import re
 
 
 class PasswordValidate(serializers.Serializer):
+
     def validate(self, data):
         password = data["password"]
         password2 = data["password2"]
@@ -39,9 +40,6 @@ class PasswordValidate(serializers.Serializer):
 
         if password != password2:
             raise ValidationError({"message": "Both password must match"})
-
-        if CustomUser.objects.filter(email=data["email"]).exists():
-            raise ValidationError({"message": "Email already taken!"})
 
         return data
 
@@ -83,6 +81,14 @@ class UserRegisterSerializer(PasswordValidate, serializers.ModelSerializer):
             "groups",
             "user_permissions",
         )
+
+    def validate(self, data):
+        super().validate(data)
+
+        if CustomUser.objects.filter(email=data["email"]).exists():
+            raise ValidationError({"message": "Email already taken!"})
+
+        return data
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -138,5 +144,33 @@ class UserChangeEmailSerializer(serializers.Serializer):
     def update(self, user, validated_data):
         user.email = validated_data.get("new_email")
         user.email_is_verified = False
+        user.save()
+        return user
+
+
+class UserResetPasswordSerializer(PasswordValidate, serializers.Serializer):
+    email = serializers.EmailField()
+    old_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        super().validate(data)
+        old_password = data["old_password"]
+
+        user = CustomUser.objects.get(email=data["email"])
+
+        if not user.check_password(old_password):
+            raise ValidationError({"message": "Invalid password"})
+
+        if old_password == data["password"] or old_password == data["password2"]:
+            raise ValidationError(
+                {"message": "New password cannot be the same as the old password."}
+            )
+
+        return data
+
+    def update(self, user, validated_data):
+        user.set_password(validated_data.get("password"))
         user.save()
         return user

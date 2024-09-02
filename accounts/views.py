@@ -12,10 +12,15 @@ from .serializers import (
     UserRegisterSerializer,
     UserLoginSerializer,
     UserChangeEmailSerializer,
+    UserResetPasswordSerializer,
 )
 from .permissions import IsAdminUser
-from .tokens import account_activation_token, account_verification_token
-from .mail import send_activation_mail, send_change_email_mail
+from .tokens import (
+    account_activation_token,
+    account_verification_token,
+    account_reset_password_token,
+)
+from .mail import send_activation_mail, send_change_email_mail, send_reset_password_mail
 
 
 @api_view(["GET"])
@@ -169,3 +174,60 @@ def verify_email(request, uidb64, token):
         )
     else:
         return Response({"error": "Errors..."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def send_mail_reset_password(request):
+    try:
+        user = request.user
+    except CustomUser.DoesNotExist:
+        return Response(
+            {"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    send_reset_password_mail(user, request)
+
+    return Response(
+        {
+            "success": True,
+            "message": "Password reset email sent.",
+        }
+    )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def reset_password(request, uidb64, token):
+    if request.method == "GET":
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = CustomUser.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if account_reset_password_token.check_token(user, token):
+            return Response(
+                {"message": "You can reset password"}, status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"error": "You can't reset passoword"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    if request.method == "POST":
+        serializer = UserResetPasswordSerializer(request, data=request.data)
+
+        if serializer.is_valid():
+            user = request.user
+            user = serializer.update(user, serializer.validated_data)
+            user.save()
+
+            return Response(
+                {"message": "Password reset successfully."}, status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
