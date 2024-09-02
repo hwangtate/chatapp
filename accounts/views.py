@@ -14,8 +14,8 @@ from .serializers import (
     UserChangeEmailSerializer,
 )
 from .permissions import IsAdminUser
-from .tokens import account_activation_token
-from .mail import send_activation_mail
+from .tokens import account_activation_token, account_verification_token
+from .mail import send_activation_mail, send_change_email_mail
 
 
 @api_view(["GET"])
@@ -140,6 +140,8 @@ def user_change_email(request):
         user = CustomUser.objects.get(email=serializer.validated_data["old_email"])
         user = serializer.update(user, serializer.validated_data)
 
+        send_change_email_mail(user, request)
+
         return Response(
             {
                 "success": True,
@@ -148,3 +150,22 @@ def user_change_email(request):
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def verify_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        user = None
+
+    if user is not None and account_verification_token.check_token(user, token):
+        user.email_is_verified = True
+        user.save()
+        return Response(
+            {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
+        )
+    else:
+        return Response({"error": "Errors..."}, status=status.HTTP_400_BAD_REQUEST)
