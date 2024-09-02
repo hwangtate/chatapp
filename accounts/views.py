@@ -181,7 +181,7 @@ def send_mail_reset_password(request):
 
 
 @api_view(["GET", "POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def reset_password(request, uidb64, token):
     if request.method == "GET":
         try:
