@@ -119,10 +119,12 @@ def user_logout(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def user_change_email(request):
-    serializer = UserChangeEmailSerializer(data=request.data)
+    serializer = UserChangeEmailSerializer(
+        data=request.data, context={"request": request}
+    )
 
     if serializer.is_valid():
-        user = CustomUser.objects.get(email=serializer.validated_data["old_email"])
+        user = CustomUser.objects.get(email=request.user.email)
         user = serializer.update(user, serializer.validated_data)
 
         email_service = EmailService(user, request)
