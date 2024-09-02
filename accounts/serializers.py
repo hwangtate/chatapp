@@ -6,44 +6,7 @@ from .models import CustomUser
 import re
 
 
-class UserSerializer(serializers.ModelSerializer):
-    last_login = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
-    date_joined = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
-
-    class Meta:
-        model = CustomUser
-        exclude = [
-            "id",
-            "is_staff",
-            "is_superuser",
-            "groups",
-            "user_permissions",
-            "password",
-        ]
-
-
-class UserRegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = ("username", "email", "password", "password2")
-        read_only_fields = (
-            "id",
-            "is_active",
-            "is_staff",
-            "is_superuser",
-            "first_name",
-            "last_name",
-            "last_login",
-            "date_joined",
-            "email_is_verified",
-            "groups",
-            "user_permissions",
-        )
-
+class PasswordValidate(serializers.Serializer):
     def validate(self, data):
         password = data["password"]
         password2 = data["password2"]
@@ -81,6 +44,45 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             raise ValidationError({"message": "Email already taken!"})
 
         return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    last_login = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
+    date_joined = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)
+
+    class Meta:
+        model = CustomUser
+        exclude = [
+            "id",
+            "is_staff",
+            "is_superuser",
+            "groups",
+            "user_permissions",
+            "password",
+        ]
+
+
+class UserRegisterSerializer(PasswordValidate, serializers.ModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ("username", "email", "password", "password2")
+        read_only_fields = (
+            "id",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "first_name",
+            "last_name",
+            "last_login",
+            "date_joined",
+            "email_is_verified",
+            "groups",
+            "user_permissions",
+        )
 
     def create(self, validated_data):
         password = validated_data.pop("password")
