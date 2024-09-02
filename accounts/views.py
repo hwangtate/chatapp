@@ -14,7 +14,7 @@ from .serializers import (
 )
 from .permissions import IsAdminUser
 from .tokens import account_activation_token
-from .mail import send_activation_email
+from .mail import send_activation_mail
 
 
 @api_view(["GET"])
@@ -64,7 +64,7 @@ def user_register(request):
     if serializer.is_valid():
         user = serializer.save()
 
-        send_activation_email(user, request)
+        send_activation_mail(user, request)
 
         data = {
             "success": True,
@@ -128,3 +128,9 @@ def user_logout(request):
     }
 
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def user_change_email(request):
+    pass
