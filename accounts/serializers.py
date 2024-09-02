@@ -92,7 +92,6 @@ class UserRegisterSerializer(PasswordValidate, serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        password2 = validated_data.pop("password2")
         user = CustomUser.objects.create(**validated_data)
         user.set_password(password)
         user.save()
@@ -132,12 +131,12 @@ class UserChangeEmailSerializer(serializers.Serializer):
         new_email = data["new_email"]
 
         try:
-            user = CustomUser.objects.get(email=old_email)
+            CustomUser.objects.get(email=old_email)
         except CustomUser.DoesNotExist:
-            raise ValidationError({"message": "Email doesn't exist!"})
+            raise ValidationError({"message": "Old Email doesn't exist!"})
 
         if CustomUser.objects.filter(email=new_email).exists():
-            raise ValidationError({"message": "Email already taken!"})
+            raise ValidationError({"message": "New Email already taken!"})
 
         return data
 
