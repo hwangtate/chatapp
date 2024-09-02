@@ -149,7 +149,6 @@ class UserChangeEmailSerializer(serializers.Serializer):
 
 
 class UserResetPasswordSerializer(PasswordValidate, serializers.Serializer):
-    email = serializers.EmailField()
     old_password = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
@@ -158,7 +157,7 @@ class UserResetPasswordSerializer(PasswordValidate, serializers.Serializer):
         super().validate(data)
         old_password = data["old_password"]
 
-        user = CustomUser.objects.get(email=data["email"])
+        user = self.context["request"].user
 
         if not user.check_password(old_password):
             raise ValidationError({"message": "Invalid password"})
