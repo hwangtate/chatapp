@@ -14,7 +14,6 @@ from .serializers import (
     UserChangeEmailSerializer,
     UserResetPasswordSerializer,
 )
-from .permissions import IsAdminUser
 from .tokens import account_activation_token, account_verification_token
 from .mail import send_activation_mail, send_change_email_mail
 
