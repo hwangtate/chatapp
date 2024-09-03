@@ -13,4 +13,5 @@ urlpatterns = [
     path("verify/", views.VerifyEmail.as_view(), name="verify_email"),
     path("active/", views.ActivateUser.as_view(), name="activate_user"),
     path("kakao/login/", views.kakao_login, name="kakao_login"),
+    path("oauth/kakao", views.kakao_callback, name="kakao_callback"),
 ]
