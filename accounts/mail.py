@@ -24,7 +24,7 @@ class EmailService:
     def send_email(self, subject, message):
         send_mail(subject, message, self.email_from, self.recipient_list)
 
-    def send_activation_mail(self):
+    def send_register_mail(self):
         uri = "active"
         activation_url = self.get_url(uri)
 
