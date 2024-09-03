@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from django.contrib.auth import login, logout
 from django.core import signing
 from django.core.signing import TimestampSigner, SignatureExpired
@@ -6,6 +8,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from .serializers import (
@@ -61,27 +64,6 @@ def user_register(request):
         return Response(data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def activate_user(request):
-    code = request.GET.get("code", "")
-    signer = TimestampSigner()
-
-    try:
-        decoded_user_email = signing.loads(code)
-        email = signer.unsign(decoded_user_email, max_age=60 * 3)
-        user = CustomUser.objects.get(email=email)
-    except (TypeError, SignatureExpired):
-        return Response({"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST)
-
-    user.is_active = True
-    user.email_is_verified = True
-    user.save()
-    return Response(
-        {"message": "Account activated successfully."}, status=status.HTTP_200_OK
-    )
 
 
 @api_view(["POST"])
@@ -141,24 +123,61 @@ def user_change_email(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def verify_email(request):
-    code = request.GET.get("code", "")
-    signer = TimestampSigner()
+class CommonDecodeSignerUser(APIView):
+    """
+    VerifyEmail, ActivateEmail 의 공통 기능을
+    클래스화 하여 상속 받아 사용 가능하게 만들었습니다.
+    """
 
-    try:
-        decoded_user_email = signing.loads(code)
-        email = signer.unsign(decoded_user_email, max_age=60 * 3)
-        user = CustomUser.objects.get(email=email)
-    except (TypeError, SignatureExpired):
-        return Response({"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = (AllowAny,)
 
-    user.email_is_verified = True
-    user.save()
-    return Response(
-        {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
-    )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.code = None
+        self.signer = None
+        self.user = None
+
+    def get(self, request, *args, **kwargs):
+        self.code = request.GET.get("code", "")
+        self.signer = TimestampSigner()
+        try:
+            decoded_user_email = signing.loads(self.code)
+            email = self.signer.unsign(decoded_user_email, max_age=60 * 3)
+            self.user = CustomUser.objects.get(email=email)
+
+        except SignatureExpired:
+            return Response(
+                {"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return self.handle_save_user(request)
+
+    @abstractmethod
+    def handle_save_user(self, request, *args, **kwargs):
+        pass
+
+
+class VerifyEmail(CommonDecodeSignerUser):
+    def handle_save_user(self, request, *args, **kwargs):
+        self.user.email_is_verified = True
+        self.user.save()
+        return Response(
+            {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
+        )
+
+
+class ActivateEmail(CommonDecodeSignerUser):
+
+    def handle_save_user(self, request, *args, **kwargs):
+        self.user.is_active = True
+        self.user.email_is_verified = True
+        self.user.save()
+        return Response(
+            {"message": "Account activated successfully."}, status=status.HTTP_200_OK
+        )
 
 
 @api_view(["POST"])
