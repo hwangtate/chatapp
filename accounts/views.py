@@ -54,7 +54,7 @@ def user_register(request):
         user = serializer.save()
 
         email_service = EmailService(user, request)
-        email_service.send_activation_mail()
+        email_service.send_register_mail()
 
         data = {
             "success": True,
@@ -124,6 +124,49 @@ def user_change_email(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsEmailVerified])
+def reset_password(request):
+    serializer = UserResetPasswordSerializer(
+        data=request.data, context={"request": request}
+    )
+
+    if serializer.is_valid():
+        user = request.user
+        user = serializer.update(user, serializer.validated_data)
+        user.save()
+
+        return Response(
+            {"message": "Password reset successfully."}, status=status.HTTP_200_OK
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def send_change_email_mail(request):
+    try:
+        user = CustomUser.objects.get(email=request.user.email)
+        email_service = EmailService(user, request)
+        email_service.send_change_email_mail()
+        return Response({"success": True}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def send_register_mail(request):
+    try:
+        user = CustomUser.objects.get(email=request.user.email)
+        email_service = EmailService(user, request)
+        email_service.send_register_mail()
+        return Response({"success": True}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # permission_classes : AllowAny
 class CommonDecodeSignerUser(APIView):
     """
@@ -171,7 +214,7 @@ class VerifyEmail(CommonDecodeSignerUser):
         )
 
 
-class ActivateEmail(CommonDecodeSignerUser):
+class ActivateUser(CommonDecodeSignerUser):
 
     def handle_save_user(self, request, *args, **kwargs):
         self.user.is_active = True
@@ -180,22 +223,3 @@ class ActivateEmail(CommonDecodeSignerUser):
         return Response(
             {"message": "Account activated successfully."}, status=status.HTTP_200_OK
         )
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated, IsEmailVerified])
-def reset_password(request):
-    serializer = UserResetPasswordSerializer(
-        data=request.data, context={"request": request}
-    )
-
-    if serializer.is_valid():
-        user = request.user
-        user = serializer.update(user, serializer.validated_data)
-        user.save()
-
-        return Response(
-            {"message": "Password reset successfully."}, status=status.HTTP_200_OK
-        )
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
