@@ -33,5 +33,5 @@ KAKAO_URI_CONFIG = {
     "KAKAO_LOGIN_URI": "https://kauth.kakao.com/oauth/authorize",
     "KAKAO_TOKEN_URI": "https://kauth.kakao.com/oauth/token",
     "KAKAO_PROFILE_URI": "https://kapi.kakao.com/v2/user/me",
-    "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/account/oauth/kakao",
+    "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/account/kakao/login/callback/",
 }
