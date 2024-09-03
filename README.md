@@ -24,7 +24,7 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 </div> 
 
 
-## 프로젝트 구조
+## 📄 프로젝트 구조 📄
 
 ```
 📦 Project
@@ -61,21 +61,21 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 │  └─ wsgi.py
 └─ templates
 ```
-## Accounts App 기능구현 현황
-⭐ 이모티콘은 제가 시도해보고 느낀 난이도를 나타냈습니다
-- [X] ⭐ User List API 
-- [X] ⭐ User Detail API
-- [X] ⭐ Profile API
-- [X] ⭐⭐ Register API
-- [X] ⭐ Login API
-- [X] ⭐ Logout API
-- [X] ⭐⭐ Email Auth API (register)
-- [X] ⭐⭐⭐ Change Email API (confirm mail)
-- [X] ⭐⭐⭐ Reset Password API (confirm mail, without confirm mail)
-- [X] ⭐⭐ Send Register Mail API
-- [X] ⭐⭐ Send EmailChange Mail API
-- [ ] ⭐⭐⭐⭐ Social Register API
-- [ ] ⭐⭐⭐⭐ Social Login API
+## ⭐ Todo List ⭐
+
+- [X] User List API 
+- [X] User Detail API
+- [X] Profile API
+- [X] Register API
+- [X] Login API
+- [X] Logout API
+- [X] Email Auth API (register)
+- [X] Change Email API (confirm mail)
+- [X] Reset Password API (confirm mail, without confirm mail)
+- [X] Send Register Mail API
+- [X] Send EmailChange Mail API
+- [ ] Social Register API
+- [ ] Social Login API
 
 
 
