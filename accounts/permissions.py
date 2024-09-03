@@ -7,5 +7,9 @@ from rest_framework.permissions import BasePermission
 
 
 class IsEmailVerified(BasePermission):
+    message = (
+        "Your email is not verified. Please verify your email to access this resource."
+    )
+
     def has_permission(self, request, view):
         return request.user and request.user.email_is_verified

@@ -19,10 +19,11 @@ from .serializers import (
     UserResetPasswordSerializer,
 )
 from .mail import EmailService
+from .permissions import IsEmailVerified
 
 
 @api_view(["GET", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsEmailVerified])
 def user_profile(request):
     user = request.user
 
