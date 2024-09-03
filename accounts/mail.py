@@ -3,6 +3,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core import signing
+from django.core.signing import TimestampSigner
 
 
 class EmailService:
@@ -10,22 +12,24 @@ class EmailService:
         self.user = user
         self.request = request
         self.email_from = settings.EMAIL_HOST_USER
-        self.uid = urlsafe_base64_encode(force_bytes(user.pk))
         self.recipient_list = [user.email]
 
-    def get_activation_token(self, token_generator):
-        return token_generator.make_token(self.user)
+    def signer(self):
+        signer = TimestampSigner()
+        signed_user_email = signer.sign(self.user.email)
+        signer_dump = signing.dumps(signed_user_email)
+        return signer_dump
 
-    def get_url(self, view_name, token):
-        link = reverse(view_name, kwargs={"uidb64": self.uid, "token": token})
+    def get_url(self, uri):
+        link = f"/{uri}/?code={self.signer()}"
         return f"{self.request.scheme}://{self.request.get_host()}{link}"
 
     def send_email(self, subject, message):
         send_mail(subject, message, self.email_from, self.recipient_list)
 
-    def send_activation_mail(self, token_generator):
-        token = self.get_activation_token(token_generator)
-        activation_url = self.get_url("activate_user", token)
+    def send_activation_mail(self):
+        uri = "active"
+        activation_url = self.get_url(uri)
 
         subject = "Confirm your Account"
         message = (
@@ -35,9 +39,9 @@ class EmailService:
 
         self.send_email(subject, message)
 
-    def send_change_email_mail(self, token_generator):
-        token = self.get_activation_token(token_generator)
-        verification_url = self.get_url("verify_email", token)
+    def send_change_email_mail(self):
+        uri = "verify"
+        verification_url = self.get_url(uri)
 
         subject = "Confirm Your Email Change"
         message = (

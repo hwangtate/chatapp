@@ -1,5 +1,6 @@
 from django.contrib.auth import login, logout
-from django.utils.http import urlsafe_base64_decode
+from django.core import signing
+from django.core.signing import TimestampSigner, SignatureExpired
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -14,7 +15,6 @@ from .serializers import (
     UserChangeEmailSerializer,
     UserResetPasswordSerializer,
 )
-from .tokens import account_activation_token, account_verification_token
 from .mail import EmailService
 
 
@@ -50,7 +50,7 @@ def user_register(request):
         user = serializer.save()
 
         email_service = EmailService(user, request)
-        email_service.send_activation_mail(account_activation_token)
+        email_service.send_activation_mail()
 
         data = {
             "success": True,
@@ -65,22 +65,23 @@ def user_register(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def activate_user(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = CustomUser.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        user = None
+def activate_user(request):
+    code = request.GET.get("code", "")
+    signer = TimestampSigner()
 
-    if user is not None and account_activation_token.check_token(user, token):
-        user.is_active = True
-        user.email_is_verified = True
-        user.save()
-        return Response(
-            {"message": "Account activated successfully."}, status=status.HTTP_200_OK
-        )
-    else:
-        return Response({"error": "Errors..."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        decoded_user_email = signing.loads(code)
+        email = signer.unsign(decoded_user_email, max_age=60 * 3)
+        user = CustomUser.objects.get(email=email)
+    except (TypeError, SignatureExpired):
+        return Response({"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.is_active = True
+    user.email_is_verified = True
+    user.save()
+    return Response(
+        {"message": "Account activated successfully."}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["POST"])
@@ -128,7 +129,7 @@ def user_change_email(request):
         user = serializer.update(user, serializer.validated_data)
 
         email_service = EmailService(user, request)
-        email_service.send_change_email_mail(account_verification_token)
+        email_service.send_change_email_mail()
 
         return Response(
             {
@@ -142,21 +143,22 @@ def user_change_email(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def verify_email(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = CustomUser.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        user = None
+def verify_email(request):
+    code = request.GET.get("code", "")
+    signer = TimestampSigner()
 
-    if user is not None and account_verification_token.check_token(user, token):
-        user.email_is_verified = True
-        user.save()
-        return Response(
-            {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
-        )
-    else:
-        return Response({"error": "Errors..."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        decoded_user_email = signing.loads(code)
+        email = signer.unsign(decoded_user_email, max_age=60 * 3)
+        user = CustomUser.objects.get(email=email)
+    except (TypeError, SignatureExpired):
+        return Response({"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.email_is_verified = True
+    user.save()
+    return Response(
+        {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["POST"])
