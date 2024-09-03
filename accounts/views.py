@@ -101,7 +101,7 @@ def user_logout(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsEmailVerified])
 def user_change_email(request):
     serializer = UserChangeEmailSerializer(
         data=request.data, context={"request": request}
@@ -124,6 +124,7 @@ def user_change_email(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# permission_classes : AllowAny
 class CommonDecodeSignerUser(APIView):
     """
     VerifyEmail, ActivateEmail 의 공통 기능을
@@ -182,7 +183,7 @@ class ActivateEmail(CommonDecodeSignerUser):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsEmailVerified])
 def reset_password(request):
     serializer = UserResetPasswordSerializer(
         data=request.data, context={"request": request}
