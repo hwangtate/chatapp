@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -12,4 +12,5 @@ urlpatterns = [
     path("send/register/", views.send_register_mail, name="send_register"),
     path("verify/", views.VerifyEmail.as_view(), name="verify_email"),
     path("active/", views.ActivateUser.as_view(), name="activate_user"),
+    path("kakao/login/", views.kakao_login, name="kakao_login"),
 ]

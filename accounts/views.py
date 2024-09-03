@@ -3,6 +3,7 @@ from abc import abstractmethod
 from django.contrib.auth import login, logout
 from django.core import signing
 from django.core.signing import TimestampSigner, SignatureExpired
+from django.shortcuts import redirect
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -20,6 +21,7 @@ from .serializers import (
 )
 from .mail import EmailService
 from .permissions import IsEmailVerified
+from coreapp.settings.development import KAKAO_KEY_CONFIG, KAKAO_URI_CONFIG
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -243,3 +245,15 @@ class ActivateUser(CommonDecodeSignerUser):
         return Response(
             {"message": "Account activated successfully."}, status=status.HTTP_200_OK
         )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def kakao_login(request):
+    client_id = KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"]
+    redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
+    kakao_login_uri = KAKAO_URI_CONFIG["KAKAO_LOGIN_URI"]
+
+    uri = f"{kakao_login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+
+    return redirect(uri)
