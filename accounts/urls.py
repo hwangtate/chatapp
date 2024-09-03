@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    # 일반 회원가입, 로그인
     path("profile/", views.user_profile, name="user_profile"),
     path("register/", views.user_register, name="user_register"),
     path("login/", views.user_login, name="user_login"),
@@ -12,4 +13,7 @@ urlpatterns = [
     path("send/register/", views.send_register_mail, name="send_register"),
     path("verify/", views.VerifyEmail.as_view(), name="verify_email"),
     path("active/", views.ActivateUser.as_view(), name="activate_user"),
+    # 소셜 회원가입, 로그인
+    path("kakao/login/", views.kakao_login, name="kakao_login"),
+    path("kakao/login/callback/", views.kakao_callback, name="kakao_callback"),
 ]
