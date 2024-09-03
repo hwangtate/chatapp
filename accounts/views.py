@@ -306,7 +306,7 @@ def kakao_callback(request):
         headers=auth_headers,
     )
     user_info_json = user_info_response.json()
-    print(user_info_json)
+
     kakao_account = user_info_json.get("kakao_account")
     if not kakao_account:
         return Response(
