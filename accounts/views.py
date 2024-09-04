@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import CustomUser
-from .serializers import (
+from accounts.serializers import (
     UserSerializer,
     UserRegisterSerializer,
     UserLoginSerializer,
@@ -21,8 +21,8 @@ from .serializers import (
     UserResetPasswordSerializer,
     SocialRegisterSerializer,
 )
-from .mail import EmailService
-from .permissions import IsEmailVerified, IsCommonUser
+from accounts.mail import EmailService
+from accounts.permissions import IsEmailVerified, IsCommonUser
 from coreapp.settings.development import KAKAO_KEY_CONFIG, KAKAO_URI_CONFIG
 
 
@@ -292,7 +292,7 @@ def kakao_login(request):
 @permission_classes([AllowAny])
 def kakao_callback(request):
     try:
-        code = request.query_params.copy().get("code")
+        code = request.query_params.get("code")
     except Exception as e:
         return Response({"error code": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
