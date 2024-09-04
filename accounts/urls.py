@@ -10,10 +10,11 @@ urlpatterns = [
     path("change-email/", views.user_change_email, name="user_change_email"),
     path("reset-password/", views.reset_password, name="reset_password"),
     path("send/change-email/", views.send_change_email_mail, name="send_change"),
-    path("send/register/", views.send_register_mail, name="send_register"),
     path("verify/", views.VerifyEmail.as_view(), name="verify_email"),
     path("active/", views.ActivateUser.as_view(), name="activate_user"),
     # 소셜 회원가입, 로그인
     path("kakao/login/", views.kakao_login, name="kakao_login"),
     path("kakao/login/callback/", views.kakao_callback, name="kakao_callback"),
+    path("google/login/", views.google_login, name="google_login"),
+    path("google/login/callback/", views.google_callback, name="google_callback"),
 ]
