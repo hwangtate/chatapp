@@ -36,7 +36,6 @@ KAKAO_URI_CONFIG = {
     "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/account/kakao/login/callback/",
 }
 
-
 GOOGLE_CONFIG = {
     "GOOGLE_PROFILE_URI": "https://www.googleapis.com/oauth2/v3/userinfo",
     "GOOGLE_CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID"),
