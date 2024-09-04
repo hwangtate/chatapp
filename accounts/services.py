@@ -79,7 +79,7 @@ class CommonDecodeSignerUser(APIView):
     def get(self, request, *args, **kwargs):
         pass
 
-    def decode_signer(self, request, *args, **kwargs):
+    def decode_signer(self, request):
         self.code = request.GET.get("code", "")
         self.signer = TimestampSigner()
         try:

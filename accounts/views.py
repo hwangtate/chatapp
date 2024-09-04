@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from accounts.serializers import (
@@ -169,7 +168,7 @@ def send_change_email_mail(request):
 class VerifyEmail(CommonDecodeSignerUser):
 
     def get(self, request, *args, **kwargs):
-        return self.decode_signer(request, *args, **kwargs)
+        return self.decode_signer(request)
 
     def handle_save_user(self, request, *args, **kwargs):
         self.user.email_is_verified = True
@@ -184,7 +183,7 @@ class VerifyEmail(CommonDecodeSignerUser):
 class ActivateUser(CommonDecodeSignerUser):
 
     def get(self, request, *args, **kwargs):
-        return self.decode_signer(request, *args, **kwargs)
+        return self.decode_signer(request)
 
     def handle_save_user(self, request, *args, **kwargs):
         self.user.is_active = True
