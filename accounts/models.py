@@ -5,10 +5,20 @@ from .manager import CustomUserManager
 
 
 class CustomUser(AbstractUser, PermissionsMixin):
+    class SocialChoices(models.TextChoices):
+        COMMON = "common", "Common"
+        KAKAO = "kakao", "Kakao"
+        NAVER = "naver", "Naver"
+        GOOGLE = "google", "Google"
 
     email = models.EmailField(unique=True)
     username = models.CharField(
         max_length=50, blank=True, unique=False, default="anonym"
+    )
+    social_type = models.CharField(
+        max_length=20,
+        choices=SocialChoices.choices,
+        default=SocialChoices.COMMON,
     )
 
     email_is_verified = models.BooleanField(default=False)

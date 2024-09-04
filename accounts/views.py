@@ -19,9 +19,10 @@ from .serializers import (
     UserLoginSerializer,
     UserChangeEmailSerializer,
     UserResetPasswordSerializer,
+    SocialRegisterSerializer,
 )
 from .mail import EmailService
-from .permissions import IsEmailVerified
+from .permissions import IsEmailVerified, IsCommonUser
 from coreapp.settings.development import KAKAO_KEY_CONFIG, KAKAO_URI_CONFIG
 
 
@@ -104,7 +105,7 @@ def user_logout(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsEmailVerified])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def user_change_email(request):
     serializer = UserChangeEmailSerializer(
         data=request.data, context={"request": request}
@@ -128,7 +129,7 @@ def user_change_email(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsEmailVerified])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def reset_password(request):
     serializer = UserResetPasswordSerializer(
         data=request.data, context={"request": request}
@@ -147,7 +148,7 @@ def reset_password(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def send_change_email_mail(request):
     try:
         user = CustomUser.objects.get(email=request.user.email)
@@ -159,7 +160,7 @@ def send_change_email_mail(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsCommonUser])
 def send_register_mail(request):
     try:
         user = CustomUser.objects.get(email=request.user.email)
@@ -248,6 +249,33 @@ class ActivateUser(CommonDecodeSignerUser):
         )
 
 
+"""Social Login And Register Function"""
+
+
+def social_login_or_register(request, data, email, response):
+    try:
+        if CustomUser.objects.filter(email=email).exists():
+            user = CustomUser.objects.get(email=email)
+            login(request, user)
+
+            return Response(response, status=status.HTTP_200_OK)
+
+        serializer = SocialRegisterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        login(request, user)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response(
+            {"error social login": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+"""Kakao Login API"""
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def kakao_login(request):
@@ -263,66 +291,72 @@ def kakao_login(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def kakao_callback(request):
-    code = request.query_params.copy().get("code")
+    try:
+        code = request.query_params.copy().get("code")
+    except Exception as e:
+        return Response({"error code": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    if code is None:
+    try:
+        token_request_data = {
+            "grant_type": "authorization_code",
+            "client_id": KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],
+            "redirect_uri": KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"],
+            "code": code,
+            "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
+        }
+        token_headers = {
+            "Content-type": "application/x-www-form-urlencoded;charset=utf-8"
+        }
+        token_response = requests.post(
+            KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
+            data=token_request_data,
+            headers=token_headers,
+        )
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+    except Exception as e:
+        return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        access_token = f"Bearer {access_token}"
+        auth_headers = {
+            "Authorization": access_token,
+        }
+
+        user_info_response = requests.get(
+            KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
+            headers=auth_headers,
+        )
+        user_info_json = user_info_response.json()
+
+        kakao_account = user_info_json.get("kakao_account")
+        profile = kakao_account.get("profile")
+    except Exception as e:
         return Response(
-            {"error": "code"},
-            status=status.HTTP_400_BAD_REQUEST,
+            {"error get(outside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    token_request_data = {
-        "grant_type": "authorization_code",
-        "client_id": KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],
-        "redirect_uri": KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"],
-        "code": code,
-        "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
-    }
+    try:
+        email = kakao_account.get("email")
+        username = profile.get("nickname")
+        social_type = "kakao"
 
-    token_headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
+        data = {
+            "email": email,
+            "username": username,
+            "social_type": social_type,
+        }
 
-    token_response = requests.post(
-        KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
-        data=token_request_data,
-        headers=token_headers,
-    )
+        social_id = f"{social_type}_{user_info_json.get('id')}"
 
-    token_json = token_response.json()
-    access_token = token_json.get("access_token")
-
-    if not access_token:
+        response = {
+            "social_type": social_type,
+            "social_id": social_id,
+            "user_email": email,
+        }
+    except Exception as e:
         return Response(
-            {"error": "not access_token"},
-            status=status.HTTP_400_BAD_REQUEST,
+            {"error get(inside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    access_token = f"Bearer {access_token}"
-    auth_headers = {
-        "Authorization": access_token,
-    }
-
-    user_info_response = requests.get(
-        KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
-        headers=auth_headers,
-    )
-    user_info_json = user_info_response.json()
-
-    kakao_account = user_info_json.get("kakao_account")
-    if not kakao_account:
-        return Response(
-            {"error": "not kakao account"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    user_email = kakao_account.get("email")
-    """
-    회원가입 및 로그인 로직 
-    """
-    social_type = "kakao"
-    social_id = f"{social_type}_{user_info_json.get('id')}"
-
-    response = {
-        "social_type": social_type,
-        "social_id": social_id,
-        "user_email": user_email,
-    }
-    return Response(response, status=status.HTTP_200_OK)
+    return social_login_or_register(request, data=data, email=email, response=response)

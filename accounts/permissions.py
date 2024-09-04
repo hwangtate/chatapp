@@ -13,3 +13,10 @@ class IsEmailVerified(BasePermission):
 
     def has_permission(self, request, view):
         return request.user and request.user.email_is_verified
+
+
+class IsCommonUser(BasePermission):
+    message = "Your account is social account. You can't change email or password."
+
+    def has_permission(self, request, view):
+        return request.user.social_type == "common"

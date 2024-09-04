@@ -176,3 +176,25 @@ class UserResetPasswordSerializer(PasswordValidate, serializers.Serializer):
         user.set_password(validated_data.get("password"))
         user.save()
         return user
+
+
+class SocialRegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    username = serializers.CharField()
+    social_type = serializers.ChoiceField(
+        choices=CustomUser.SocialChoices.choices,
+    )
+
+    def validate(self, data):
+        if CustomUser.objects.filter(email=data["email"]).exists():
+            raise ValidationError({"message": "Email already taken!"})
+
+        return data
+
+    def create(self, validated_data):
+        user = CustomUser.objects.create(**validated_data)
+        user.is_active = True
+        user.email_is_verified = True
+        user.set_unusable_password()
+        user.save()
+        return user
