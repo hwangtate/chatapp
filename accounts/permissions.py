@@ -26,4 +26,4 @@ class IsLoggedIn(BasePermission):
     message = "Your account is logged in."
 
     def has_permission(self, request, view):
-        return not request.user
+        return not request.user.is_authenticated
