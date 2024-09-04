@@ -24,7 +24,7 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 </div> 
 
 
-## 📄 프로젝트 구조 📄
+## 프로젝트 구조
 
 ```
 📦 Project
@@ -77,7 +77,7 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 - [X] Social Register API
 - [X] Social Login API
 - [X] Kakao Login API
-- [ ] Google Login API
+- [X] Google Login API
 - [ ] Naver Login API
 
 
