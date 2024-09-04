@@ -199,13 +199,13 @@ class ActivateUser(CommonDecodeSignerUser):
 class KakaoLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        return self.kakao_login(request, *args, **kwargs)
+        return self.kakao_login()
 
 
 class GoogleLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        return self.google_login(request, *args, **kwargs)
+        return self.google_login()
 
 
 @api_view(["GET"])

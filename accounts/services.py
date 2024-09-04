@@ -116,7 +116,7 @@ class SocialLoginAPIView(APIView):
     def get(self, request, *args, **kwargs):
         pass
 
-    def kakao_login(self, request, *args, **kwargs):
+    def kakao_login(self):
         self.client_id = KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"]
         self.redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
         self.login_uri = KAKAO_URI_CONFIG["KAKAO_LOGIN_URI"]
@@ -125,7 +125,7 @@ class SocialLoginAPIView(APIView):
 
         return redirect(url)
 
-    def google_login(self, request, *args, **kwargs):
+    def google_login(self):
         self.client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
         self.redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
         self.login_uri = GOOGLE_CONFIG["GOOGLE_LOGIN_URI"]
