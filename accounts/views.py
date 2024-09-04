@@ -22,7 +22,7 @@ from .serializers import (
     SocialRegisterSerializer,
 )
 from .mail import EmailService
-from .permissions import IsEmailVerified
+from .permissions import IsEmailVerified, IsCommonUser
 from coreapp.settings.development import KAKAO_KEY_CONFIG, KAKAO_URI_CONFIG
 
 
@@ -105,7 +105,7 @@ def user_logout(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsEmailVerified])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def user_change_email(request):
     serializer = UserChangeEmailSerializer(
         data=request.data, context={"request": request}
@@ -129,7 +129,7 @@ def user_change_email(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsEmailVerified])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def reset_password(request):
     serializer = UserResetPasswordSerializer(
         data=request.data, context={"request": request}
@@ -148,7 +148,7 @@ def reset_password(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def send_change_email_mail(request):
     try:
         user = CustomUser.objects.get(email=request.user.email)
@@ -160,7 +160,7 @@ def send_change_email_mail(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsCommonUser])
 def send_register_mail(request):
     try:
         user = CustomUser.objects.get(email=request.user.email)
