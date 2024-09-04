@@ -252,7 +252,7 @@ class ActivateUser(CommonDecodeSignerUser):
 """Social Login And Register Function"""
 
 
-def social_login(request, data, email, response):
+def social_login_or_register(request, data, email, response):
     try:
         if CustomUser.objects.filter(email=email).exists():
             user = CustomUser.objects.get(email=email)
@@ -355,5 +355,4 @@ def kakao_callback(request):
         "user_email": email,
     }
 
-    return social_login(request, data=data, email=email, response=response)
-
+    return social_login_or_register(request, data=data, email=email, response=response)
