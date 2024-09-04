@@ -19,6 +19,7 @@ from .serializers import (
     UserLoginSerializer,
     UserChangeEmailSerializer,
     UserResetPasswordSerializer,
+    SocialRegisterSerializer,
 )
 from .mail import EmailService
 from .permissions import IsEmailVerified
@@ -248,6 +249,31 @@ class ActivateUser(CommonDecodeSignerUser):
         )
 
 
+"""Social Login And Register Function"""
+
+
+def social_login(request, data, email, response):
+    try:
+        if CustomUser.objects.filter(email=email).exists():
+            user = CustomUser.objects.get(email=email)
+            login(request, user)
+
+            return Response(response, status=status.HTTP_200_OK)
+
+        serializer = SocialRegisterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        login(request, user)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""Kakao Login API"""
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def kakao_login(request):
@@ -278,16 +304,14 @@ def kakao_callback(request):
         "code": code,
         "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
     }
-
     token_headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
-
     token_response = requests.post(
         KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
         data=token_request_data,
         headers=token_headers,
     )
-
     token_json = token_response.json()
+
     access_token = token_json.get("access_token")
 
     if not access_token:
@@ -308,21 +332,28 @@ def kakao_callback(request):
     user_info_json = user_info_response.json()
 
     kakao_account = user_info_json.get("kakao_account")
+    profile = kakao_account.get("profile")
+
     if not kakao_account:
         return Response(
             {"error": "not kakao account"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    user_email = kakao_account.get("email")
-    """
-    회원가입 및 로그인 로직 
-    """
+    email = kakao_account.get("email")
+    username = profile.get("nickname")
+    data = {
+        "email": email,
+        "username": username,
+    }
+
     social_type = "kakao"
     social_id = f"{social_type}_{user_info_json.get('id')}"
 
     response = {
         "social_type": social_type,
         "social_id": social_id,
-        "user_email": user_email,
+        "user_email": email,
     }
-    return Response(response, status=status.HTTP_200_OK)
+
+    return social_login(request, data=data, email=email, response=response)
+
