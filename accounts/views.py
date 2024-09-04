@@ -339,12 +339,14 @@ def kakao_callback(request):
     try:
         email = kakao_account.get("email")
         username = profile.get("nickname")
+        social_type = "kakao"
+
         data = {
             "email": email,
             "username": username,
+            "social_type": social_type,
         }
 
-        social_type = "kakao"
         social_id = f"{social_type}_{user_info_json.get('id')}"
 
         response = {

@@ -181,6 +181,9 @@ class UserResetPasswordSerializer(PasswordValidate, serializers.Serializer):
 class SocialRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     username = serializers.CharField()
+    social_type = serializers.ChoiceField(
+        choices=CustomUser.SocialChoices.choices,
+    )
 
     def validate(self, data):
         if CustomUser.objects.filter(email=data["email"]).exists():
