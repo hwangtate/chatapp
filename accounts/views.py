@@ -268,7 +268,9 @@ def social_login_or_register(request, data, email, response):
         return Response(response, status=status.HTTP_200_OK)
 
     except Exception as e:
-        return Response({"error social login": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error social login": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 """Kakao Login API"""
@@ -330,7 +332,9 @@ def kakao_callback(request):
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
     except Exception as e:
-        return Response({"error get(outside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error get(outside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     try:
         email = kakao_account.get("email")
@@ -349,6 +353,8 @@ def kakao_callback(request):
             "user_email": email,
         }
     except Exception as e:
-        return Response({"error get(inside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error get(inside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     return social_login_or_register(request, data=data, email=email, response=response)
