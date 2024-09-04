@@ -23,7 +23,11 @@ from accounts.serializers import (
 )
 from accounts.mail import EmailService
 from accounts.permissions import IsEmailVerified, IsCommonUser
-from coreapp.settings.development import KAKAO_KEY_CONFIG, KAKAO_URI_CONFIG
+from coreapp.settings.development import (
+    KAKAO_KEY_CONFIG,
+    KAKAO_URI_CONFIG,
+    GOOGLE_CONFIG,
+)
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -240,25 +244,23 @@ class ActivateUser(CommonDecodeSignerUser):
 """Social Login And Register Function"""
 
 
-def social_login_or_register(request, data, email, response):
-    try:
-        if CustomUser.objects.filter(email=email).exists():
-            user = CustomUser.objects.get(email=email)
-            login(request, user)
+def social_login_or_register(request, data, email, social_type, response):
 
-            return Response(response, status=status.HTTP_200_OK)
+    if CustomUser.objects.filter(email=email, social_type=social_type).exists():
+        user = CustomUser.objects.get(email=email)
+        login(request, user)
 
-        serializer = SocialRegisterSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        return Response(response, status=status.HTTP_200_OK)
+
+    serializer = SocialRegisterSerializer(data=data)
+
+    if serializer.is_valid():
         user = serializer.save()
         login(request, user)
 
         return Response(response, status=status.HTTP_200_OK)
 
-    except Exception as e:
-        return Response(
-            {"error social login": str(e)}, status=status.HTTP_400_BAD_REQUEST
-        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 """Kakao Login API"""
@@ -271,9 +273,9 @@ def kakao_login(request):
     redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
     kakao_login_uri = KAKAO_URI_CONFIG["KAKAO_LOGIN_URI"]
 
-    uri = f"{kakao_login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+    url = f"{kakao_login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
 
-    return redirect(uri)
+    return redirect(url)
 
 
 @api_view(["GET"])
@@ -292,27 +294,31 @@ def kakao_callback(request):
         "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
     }
     token_headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
-    token_response = requests.post(
-        KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
-        data=token_request_data,
-        headers=token_headers,
-    )
 
     try:
-        token_json = token_response.json()
-        access_token = token_json.get("access_token")
+        token_response = requests.post(
+            KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
+            data=token_request_data,
+            headers=token_headers,
+        )
     except Exception as e:
         return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    token_json = token_response.json()
+    access_token = token_json.get("access_token")
     access_token = f"Bearer {access_token}"
     auth_headers = {
         "Authorization": access_token,
     }
 
-    user_info_response = requests.get(
-        KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
-        headers=auth_headers,
-    )
+    try:
+        user_info_response = requests.get(
+            KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
+            headers=auth_headers,
+        )
+    except Exception as e:
+        return Response({"error user_info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     user_info_json = user_info_response.json()
 
     kakao_account = user_info_json.get("kakao_account")
@@ -328,14 +334,18 @@ def kakao_callback(request):
         "social_type": social_type,
     }
 
-    social_id = f"{social_type}_{user_info_json.get('id')}"
-
     response = {
         "social_type": social_type,
-        "social_id": social_id,
         "user_email": email,
+        "username": username,
     }
-    return social_login_or_register(request, data=data, email=email, response=response)
+    return social_login_or_register(
+        request,
+        data=data,
+        email=email,
+        social_type=social_type,
+        response=response,
+    )
 
 
 """Google Login API"""
@@ -344,10 +354,80 @@ def kakao_callback(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def google_login(request):
-    pass
+    client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
+    redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
+    auth_uri = GOOGLE_CONFIG["GOOGLE_AUTH_URI"]
+    scope = GOOGLE_CONFIG["GOOGLE_SCOPE"]
+
+    url = f"{auth_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+    return redirect(url)
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def google_callback(request):
-    pass
+    code = request.query_params.get("code")
+
+    if not code:
+        return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    token_request_data = {
+        "grant_type": "authorization_code",
+        "client_id": GOOGLE_CONFIG["GOOGLE_CLIENT_ID"],
+        "client_secret": GOOGLE_CONFIG["GOOGLE_CLIENT_SECRET"],
+        "code": code,
+        "redirect_uri": GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"],
+    }
+    token_headers = {
+        "Content-type": "application/x-www-form-urlencoded",
+        "Host": "oauth2.googleapis.com",
+    }
+
+    try:
+        token_response = requests.post(
+            GOOGLE_CONFIG["GOOGLE_TOKEN_URI"],
+            data=token_request_data,
+            headers=token_headers,
+        )
+    except Exception as e:
+        return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    token_json = token_response.json()
+    access_token = token_json.get("access_token")
+    access_token = f"Bearer {access_token}"
+    auth_headers = {
+        "Authorization": access_token,
+    }
+
+    try:
+        user_info_response = requests.get(
+            GOOGLE_CONFIG["GOOGLE_PROFILE_URI"],
+            headers=auth_headers,
+        )
+    except Exception as e:
+        return Response({"error user_info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    user_info_json = user_info_response.json()
+    email = user_info_json.get("email")
+    username = user_info_json.get("name")
+    social_type = "google"
+
+    data = {
+        "email": email,
+        "username": username,
+        "social_type": social_type,
+    }
+
+    response = {
+        "social_type": social_type,
+        "user_email": email,
+        "username": username,
+    }
+
+    return social_login_or_register(
+        request,
+        data=data,
+        email=email,
+        social_type=social_type,
+        response=response,
+    )

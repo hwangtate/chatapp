@@ -35,3 +35,17 @@ KAKAO_URI_CONFIG = {
     "KAKAO_PROFILE_URI": "https://kapi.kakao.com/v2/user/me",
     "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/account/kakao/login/callback/",
 }
+
+
+GOOGLE_CONFIG = {
+    "GOOGLE_PROFILE_URI": "https://www.googleapis.com/oauth2/v3/userinfo",
+    "GOOGLE_CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID"),
+    "GOOGLE_PROJECT_ID": os.getenv("GOOGLE_PROJECT_ID"),
+    "GOOGLE_API_KEY": os.getenv("GOOGLE_API_KEY"),
+    "GOOGLE_AUTH_URI": "https://accounts.google.com/o/oauth2/v2/auth",
+    "GOOGLE_TOKEN_URI": "https://oauth2.googleapis.com/token",
+    "GOOGLE_AUTH_PROVIDER_X509_CERT_URL": "https://www.googleapis.com/oauth2/v1/certs",
+    "GOOGLE_CLIENT_SECRET": os.getenv("GOOGLE_CLIENT_SECRET"),
+    "GOOGLE_REDIRECT_URIS": "http://127.0.0.1:8000/account/google/login/callback/",
+    "GOOGLE_SCOPE": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+}
