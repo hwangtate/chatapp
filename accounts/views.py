@@ -266,6 +266,51 @@ def social_login_or_register(request, data, email, social_type, response):
 """Kakao Login API"""
 
 
+class SocialLoginAPIView(APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = None
+        self.redirect_uri = None
+        self.login_uri = None
+
+    @abstractmethod
+    def get(self, request, *args, **kwargs):
+        pass
+
+    def kakao_login(self, request, *args, **kwargs):
+        self.client_id = KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"]
+        self.redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
+        self.login_uri = KAKAO_URI_CONFIG["KAKAO_LOGIN_URI"]
+
+        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
+
+        return redirect(url)
+
+    def google_login(self, request, *args, **kwargs):
+        self.client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
+        self.redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
+        self.login_uri = GOOGLE_CONFIG["GOOGLE_LOGIN_URI"]
+        scope = GOOGLE_CONFIG["GOOGLE_SCOPE"]
+
+        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&scope={scope}"
+
+        return redirect(url)
+
+
+class SocialCallBackAPIView(APIView):
+
+    permission_classes = (AllowAny,)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get(self, request, *args, **kwargs):
+        pass
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny, IsLoggedIn])
 def kakao_login(request):
@@ -356,10 +401,10 @@ def kakao_callback(request):
 def google_login(request):
     client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
     redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
-    auth_uri = GOOGLE_CONFIG["GOOGLE_AUTH_URI"]
+    login_uri = GOOGLE_CONFIG["GOOGLE_LOGIN_URI"]
     scope = GOOGLE_CONFIG["GOOGLE_SCOPE"]
 
-    url = f"{auth_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+    url = f"{login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
     return redirect(url)
 
 
