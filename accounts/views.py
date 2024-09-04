@@ -159,18 +159,6 @@ def send_change_email_mail(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated, IsCommonUser])
-def send_register_mail(request):
-    try:
-        user = CustomUser.objects.get(email=request.user.email)
-        email_service = EmailService(user, request)
-        email_service.send_register_mail()
-        return Response({"success": True}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 # permission_classes : AllowAny
 class CommonDecodeSignerUser(APIView):
     """
@@ -291,72 +279,75 @@ def kakao_login(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def kakao_callback(request):
-    try:
-        code = request.query_params.get("code")
-    except Exception as e:
-        return Response({"error code": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    code = request.query_params.get("code")
+
+    if not code:
+        return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    token_request_data = {
+        "grant_type": "authorization_code",
+        "client_id": KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],
+        "redirect_uri": KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"],
+        "code": code,
+        "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
+    }
+    token_headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
+    token_response = requests.post(
+        KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
+        data=token_request_data,
+        headers=token_headers,
+    )
 
     try:
-        token_request_data = {
-            "grant_type": "authorization_code",
-            "client_id": KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],
-            "redirect_uri": KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"],
-            "code": code,
-            "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
-        }
-        token_headers = {
-            "Content-type": "application/x-www-form-urlencoded;charset=utf-8"
-        }
-        token_response = requests.post(
-            KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
-            data=token_request_data,
-            headers=token_headers,
-        )
         token_json = token_response.json()
         access_token = token_json.get("access_token")
     except Exception as e:
         return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        access_token = f"Bearer {access_token}"
-        auth_headers = {
-            "Authorization": access_token,
-        }
+    access_token = f"Bearer {access_token}"
+    auth_headers = {
+        "Authorization": access_token,
+    }
 
-        user_info_response = requests.get(
-            KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
-            headers=auth_headers,
-        )
-        user_info_json = user_info_response.json()
+    user_info_response = requests.get(
+        KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
+        headers=auth_headers,
+    )
+    user_info_json = user_info_response.json()
 
-        kakao_account = user_info_json.get("kakao_account")
-        profile = kakao_account.get("profile")
-    except Exception as e:
-        return Response(
-            {"error get(outside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
-        )
+    kakao_account = user_info_json.get("kakao_account")
+    profile = kakao_account.get("profile")
 
-    try:
-        email = kakao_account.get("email")
-        username = profile.get("nickname")
-        social_type = "kakao"
+    email = kakao_account.get("email")
+    username = profile.get("nickname")
+    social_type = "kakao"
 
-        data = {
-            "email": email,
-            "username": username,
-            "social_type": social_type,
-        }
+    data = {
+        "email": email,
+        "username": username,
+        "social_type": social_type,
+    }
 
-        social_id = f"{social_type}_{user_info_json.get('id')}"
+    social_id = f"{social_type}_{user_info_json.get('id')}"
 
-        response = {
-            "social_type": social_type,
-            "social_id": social_id,
-            "user_email": email,
-        }
-    except Exception as e:
-        return Response(
-            {"error get(inside) user info": str(e)}, status=status.HTTP_400_BAD_REQUEST
-        )
-
+    response = {
+        "social_type": social_type,
+        "social_id": social_id,
+        "user_email": email,
+    }
     return social_login_or_register(request, data=data, email=email, response=response)
+
+
+"""Google Login API"""
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def google_login(request):
+    pass
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def google_callback(request):
+    pass
