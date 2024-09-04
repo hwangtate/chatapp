@@ -20,3 +20,10 @@ class IsCommonUser(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.social_type == "common"
+
+
+class IsLoggedIn(BasePermission):
+    message = "Your account is logged in."
+
+    def has_permission(self, request, view):
+        return not request.user

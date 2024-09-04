@@ -22,7 +22,7 @@ from accounts.serializers import (
     SocialRegisterSerializer,
 )
 from accounts.mail import EmailService
-from accounts.permissions import IsEmailVerified, IsCommonUser
+from accounts.permissions import IsEmailVerified, IsCommonUser, IsLoggedIn
 from coreapp.settings.development import (
     KAKAO_KEY_CONFIG,
     KAKAO_URI_CONFIG,
@@ -54,7 +54,7 @@ def user_profile(request):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny, IsLoggedIn])
 def user_register(request):
     serializer = UserRegisterSerializer(data=request.data)
 
@@ -76,7 +76,7 @@ def user_register(request):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny, IsLoggedIn])
 def user_login(request):
     serializer = UserLoginSerializer(data=request.data)
 
@@ -267,7 +267,7 @@ def social_login_or_register(request, data, email, social_type, response):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny, IsLoggedIn])
 def kakao_login(request):
     client_id = KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"]
     redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
@@ -352,7 +352,7 @@ def kakao_callback(request):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny, IsLoggedIn])
 def google_login(request):
     client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
     redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
