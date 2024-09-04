@@ -1,11 +1,6 @@
 from rest_framework.permissions import BasePermission
 
 
-# class IsAdminUser(BasePermission):
-#     def has_permission(self, request, view):
-#         return request.user and request.user.is_superuser
-
-
 class IsEmailVerified(BasePermission):
     message = (
         "Your email is not verified. Please verify your email to access this resource."
@@ -20,3 +15,10 @@ class IsCommonUser(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.social_type == "common"
+
+
+class IsLoggedIn(BasePermission):
+    message = "Your account is logged in."
+
+    def has_permission(self, request, view):
+        return not request.user.is_authenticated
