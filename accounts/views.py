@@ -195,12 +195,14 @@ class ActivateUser(CommonDecodeSignerUser):
         )
 
 
+# permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.kakao_login()
 
 
+# permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
