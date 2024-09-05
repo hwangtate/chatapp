@@ -21,7 +21,7 @@ from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
     SocialLogin,
-    SocialCallback,
+    SocialLoginCallback,
 )
 from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
 
@@ -235,7 +235,7 @@ class NaverLogin(SocialLogin, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginCallback(SocialCallback, APIView):
+class KakaoLoginLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
@@ -275,7 +275,7 @@ class KakaoLoginCallback(SocialCallback, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class GoogleLoginCallback(SocialCallback, APIView):
+class GoogleLoginLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
@@ -313,7 +313,7 @@ class GoogleLoginCallback(SocialCallback, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class NaverLoginCallback(SocialCallback, APIView):
+class NaverLoginLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
