@@ -54,3 +54,16 @@ GOOGLE_CONFIG = {
     # host
     "HOST": "oauth2.googleapis.com",
 }
+
+NAVER_CONFIG = {
+    # key
+    "CLIENT_ID": os.getenv("NAVER_CLIENT_ID"),
+    "CLIENT_SECRET": os.getenv("NAVER_CLIENT_SECRET"),
+    # uri
+    "LOGIN_URI": "https://nid.naver.com/oauth2.0/authorize",
+    "TOKEN_URI": "https://nid.naver.com/oauth2.0/token",
+    "PROFILE_URI": "https://openapi.naver.com/v1/nid/me",
+    "REDIRECT_URIS": "http://127.0.0.1:8000/account/naver/login/callback/",
+    # type
+    "GRANT_TYPE": "authorization_code",
+}
