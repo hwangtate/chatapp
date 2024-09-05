@@ -1,5 +1,3 @@
-import requests
-
 from django.contrib.auth import login, logout
 
 from rest_framework import status
@@ -23,11 +21,7 @@ from accounts.services import (
     SocialLoginAPIView,
     SocialCallbackAPIView,
 )
-from coreapp.settings.development import (
-    KAKAO_KEY_CONFIG,
-    KAKAO_URI_CONFIG,
-    GOOGLE_CONFIG,
-)
+from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -205,15 +199,15 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.grant_type = "authorization_code"
-        self.client_id = KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"]
-        self.client_secret = KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"]
-        self.redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
+        self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
+        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
+        self.client_secret = KAKAO_CONFIG["CLIENT_SECRET_KEY"]
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URI"]
         self.code = None
-        self.content_type = "application/x-www-form-urlencoded;charset=utf-8"
+        self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
-        self.token_uri = KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"]
-        self.profile_uri = KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"]
+        self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
+        self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
