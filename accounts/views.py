@@ -205,7 +205,7 @@ class NaverLoginAPIView(SocialLoginAPIView):
         return redirect(self.naver_login())
 
 
-# permission_classes = (AllowAny,)
+# permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
@@ -243,7 +243,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
         )
 
 
-# permission_classes = (AllowAny,)
+# permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
@@ -279,7 +279,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
         )
 
 
-# permission_classes = (AllowAny,)
+# permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):

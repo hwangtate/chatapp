@@ -117,7 +117,7 @@ class SocialLoginAPIView(APIView):
 
 class SocialCallbackAPIView(APIView):
 
-    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
