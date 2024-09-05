@@ -20,7 +20,7 @@ from accounts.permissions import IsEmailVerified, IsCommonUser, IsLoggedIn
 from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
-    SocialLoginAPIView,
+    SocialLogin,
     SocialCallback,
 )
 from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
@@ -156,12 +156,14 @@ def send_change_email_mail(request):
 
 
 # permission_classes = (AllowAny,)
-class VerifyEmail(CommonDecodeSignerUser):
+class VerifyEmail(CommonDecodeSignerUser, APIView):
 
-    def get(self, request, *args, **kwargs):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
         return self.decode_signer(request)
 
-    def handle_save_user(self, request, *args, **kwargs):
+    def handle_save_user(self, request):
         self.user.email_is_verified = True
         self.user.save()
 
@@ -169,12 +171,14 @@ class VerifyEmail(CommonDecodeSignerUser):
 
 
 # permission_classes = (AllowAny,)
-class ActivateUser(CommonDecodeSignerUser):
+class ActivateUser(CommonDecodeSignerUser, APIView):
 
-    def get(self, request, *args, **kwargs):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
         return self.decode_signer(request)
 
-    def handle_save_user(self, request, *args, **kwargs):
+    def handle_save_user(self, request):
         self.user.is_active = True
         self.user.email_is_verified = True
         self.user.save()
@@ -186,7 +190,9 @@ class ActivateUser(CommonDecodeSignerUser):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginAPIView(SocialLoginAPIView):
+class KakaoLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -199,7 +205,9 @@ class KakaoLoginAPIView(SocialLoginAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class GoogleLoginAPIView(SocialLoginAPIView):
+class GoogleLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -212,7 +220,10 @@ class GoogleLoginAPIView(SocialLoginAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class NaverLoginAPIView(SocialLoginAPIView):
+class NaverLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.client_id = NAVER_CONFIG["CLIENT_ID"]
