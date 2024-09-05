@@ -206,6 +206,7 @@ class SocialCallbackAPIView(APIView):
                 profile_uri,
                 headers=auth_headers,
             )
+
         except Exception as e:
             return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -243,6 +244,7 @@ class SocialCallbackAPIView(APIView):
                 code=self.code,
                 state=self.state,
             )
+
         # Kakao
         else:
             token_request_data, token_headers = self.token_data(

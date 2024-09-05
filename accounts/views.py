@@ -197,6 +197,7 @@ class GoogleLoginAPIView(SocialLoginAPIView):
         return self.google_login()
 
 
+# permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
@@ -277,6 +278,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
         )
 
 
+# permission_classes = (AllowAny,)
 class NaverLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
