@@ -217,3 +217,47 @@ class SocialCallbackAPIView(APIView):
     @staticmethod
     def user_data(email, username, social_type):
         return {"email": email, "username": username, "social_type": social_type}
+
+    @staticmethod
+    def get_user_info_json(self, **kwargs):
+        if kwargs.get("host"):
+            token_request_data, token_headers = self.token_data(
+                grant_type=self.grant_type,
+                client_id=self.client_id,
+                client_secret=self.client_secret,
+                redirect_uri=self.redirect_uri,
+                code=self.code,
+                content_type=self.content_type,
+                host=self.host,
+            )
+
+        else:
+            token_request_data, token_headers = self.token_data(
+                grant_type=self.grant_type,
+                client_id=self.client_id,
+                client_secret=self.client_secret,
+                redirect_uri=self.redirect_uri,
+                code=self.code,
+                content_type=self.content_type,
+            )
+
+        token_response = self.requests_post_token(
+            token_uri=self.token_uri,
+            token_request_data=token_request_data,
+            token_headers=token_headers,
+        )
+
+        auth_headers = self.transfer_token(
+            token_response=token_response,
+        )
+
+        user_info_response = self.requests_get_user(
+            profile_uri=self.profile_uri,
+            auth_headers=auth_headers,
+        )
+
+        user_info_json = self.user_info_json(
+            user_info_response=user_info_response,
+        )
+
+        return user_info_json
