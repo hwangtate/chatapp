@@ -1,4 +1,5 @@
 from django.contrib.auth import login, logout
+from django.shortcuts import redirect
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -187,21 +188,21 @@ class ActivateUser(CommonDecodeSignerUser):
 class KakaoLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        return self.kakao_login()
+        return redirect(self.kakao_login())
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        return self.google_login()
+        return redirect(self.google_login())
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        return self.naver_login()
+        return redirect(self.naver_login())
 
 
 # permission_classes = (AllowAny,)

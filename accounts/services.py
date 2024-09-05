@@ -4,7 +4,6 @@ import requests
 from django.contrib.auth import login
 from django.core import signing
 from django.core.signing import TimestampSigner, SignatureExpired
-from django.shortcuts import redirect
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -93,7 +92,7 @@ class SocialLoginAPIView(APIView):
         self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
         url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
 
-        return redirect(url)
+        return url
 
     def google_login(self):
         self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
@@ -103,7 +102,7 @@ class SocialLoginAPIView(APIView):
 
         url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&scope={scope}"
 
-        return redirect(url)
+        return url
 
     def naver_login(self):
         self.client_id = NAVER_CONFIG["CLIENT_ID"]
@@ -113,7 +112,7 @@ class SocialLoginAPIView(APIView):
 
         url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&state={state}"
 
-        return redirect(url)
+        return url
 
 
 class SocialCallbackAPIView(APIView):
