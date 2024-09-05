@@ -86,33 +86,23 @@ class SocialLoginAPIView(APIView):
     def get(self, request, *args, **kwargs):
         pass
 
-    def kakao_login(self):
-        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
-        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
-        self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
-        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
+    def social_login(self, kakao=None, google=None, naver=None):
+        if kakao:
+            url = self.basic_url()
+            return url
 
-        return url
+        elif google:
+            scope = GOOGLE_CONFIG["SCOPE"]
+            url = self.basic_url() + f"&scope={scope}"
+            return url
 
-    def google_login(self):
-        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
-        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
-        self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
-        scope = GOOGLE_CONFIG["SCOPE"]
+        elif naver:
+            state = signing.dumps(self.client_id)
+            url = self.basic_url() + f"&state={state}"
+            return url
 
-        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&scope={scope}"
-
-        return url
-
-    def naver_login(self):
-        self.client_id = NAVER_CONFIG["CLIENT_ID"]
-        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
-        self.login_uri = NAVER_CONFIG["LOGIN_URI"]
-        state = signing.dumps(self.client_id)
-
-        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&state={state}"
-
-        return url
+    def basic_url(self):
+        return f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
 
 
 class SocialCallbackAPIView(APIView):

@@ -187,22 +187,39 @@ class ActivateUser(CommonDecodeSignerUser):
 # permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginAPIView(SocialLoginAPIView):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
+        self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
+
     def get(self, request, *args, **kwargs):
-        return redirect(self.kakao_login())
+        return redirect(self.social_login(kakao=True))
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginAPIView(SocialLoginAPIView):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
+
     def get(self, request, *args, **kwargs):
-        return redirect(self.google_login())
+        return redirect(self.social_login(google=True))
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginAPIView(SocialLoginAPIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = NAVER_CONFIG["CLIENT_ID"]
+        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
+        self.login_uri = NAVER_CONFIG["LOGIN_URI"]
 
     def get(self, request, *args, **kwargs):
-        return redirect(self.naver_login())
+        return redirect(self.social_login(naver=True))
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
