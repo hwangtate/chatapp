@@ -131,7 +131,8 @@ class SocialCallback:
         self.auth_headers = None
 
         self.user_info_response = None
-        self.user_info_json = None
+        self.user_info_data = None
+
         self.user_data = None
 
     def get_code(self, request):
@@ -207,9 +208,9 @@ class SocialCallback:
             return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def user_info_json(self, user_info_response):
-        self.user_info_json = user_info_response.json()
+        self.user_info_data = user_info_response.json()
 
-        return self.user_info_json
+        return self.user_info_data
 
     def get_user_info_json(self, **kwargs):
         # kakao(basic)
@@ -245,11 +246,11 @@ class SocialCallback:
             auth_headers=self.auth_headers,
         )
 
-        self.user_info_json = self.user_info_json(self.user_info_response)
+        self.user_info_data = self.user_info_json(self.user_info_response)
 
-        return self.user_info_json
+        return self.user_info_data
 
-    def user_data(self, email, username, social_type):
+    def get_user_data(self, email, username, social_type):
         self.user_data = {"email": email, "username": username, "social_type": social_type}
 
         return self.user_data

@@ -252,7 +252,7 @@ class KakaoLoginCallback(SocialCallback, APIView):
         username = profile.get("nickname")
         social_type = "kakao"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
@@ -288,7 +288,7 @@ class GoogleLoginCallback(SocialCallback, APIView):
         username = user_info_json.get("name")
         social_type = "google"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
@@ -327,7 +327,7 @@ class NaverLoginCallback(SocialCallback, APIView):
         username = naver_response.get("name")
         social_type = "naver"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
