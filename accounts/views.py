@@ -21,6 +21,7 @@ from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
     SocialLoginAPIView,
+    SocialCallbackAPIView,
 )
 from coreapp.settings.development import (
     KAKAO_KEY_CONFIG,
@@ -110,9 +111,7 @@ def user_logout(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def user_change_email(request):
-    serializer = UserChangeEmailSerializer(
-        data=request.data, context={"request": request}
-    )
+    serializer = UserChangeEmailSerializer(data=request.data, context={"request": request})
 
     if serializer.is_valid():
         user = CustomUser.objects.get(email=request.user.email)
@@ -134,18 +133,14 @@ def user_change_email(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsEmailVerified, IsCommonUser])
 def reset_password(request):
-    serializer = UserResetPasswordSerializer(
-        data=request.data, context={"request": request}
-    )
+    serializer = UserResetPasswordSerializer(data=request.data, context={"request": request})
 
     if serializer.is_valid():
         user = request.user
         user = serializer.update(user, serializer.validated_data)
         user.save()
 
-        return Response(
-            {"message": "Password reset successfully."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "Password reset successfully."}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -174,9 +169,7 @@ class VerifyEmail(CommonDecodeSignerUser):
         self.user.email_is_verified = True
         self.user.save()
 
-        return Response(
-            {"message": "Email confirmed successfully."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "Email confirmed successfully."}, status=status.HTTP_200_OK)
 
 
 # permission_classes = (AllowAny,)
@@ -190,9 +183,7 @@ class ActivateUser(CommonDecodeSignerUser):
         self.user.email_is_verified = True
         self.user.save()
 
-        return Response(
-            {"message": "Account activated successfully."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "Account activated successfully."}, status=status.HTTP_200_OK)
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
@@ -209,74 +200,71 @@ class GoogleLoginAPIView(SocialLoginAPIView):
         return self.google_login()
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def kakao_callback(request):
-    code = request.query_params.get("code")
+class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
-    if not code:
-        return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.grant_type = "authorization_code"
+        self.client_id = (KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],)
+        self.client_secret = KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"]
+        self.redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
+        self.code = None
+        self.content_type = "application/x-www-form-urlencoded;charset=utf-8"
 
-    token_request_data = {
-        "grant_type": "authorization_code",
-        "client_id": KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],
-        "redirect_uri": KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"],
-        "code": code,
-        "client_secret": KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"],
-    }
-    token_headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
+        self.token_uri = KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"]
+        self.profile_uri = KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"]
 
-    try:
-        token_response = requests.post(
-            KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"],
-            data=token_request_data,
-            headers=token_headers,
+    def get(self, request, *args, **kwargs):
+        self.code = self.get_code(request)
+        user_info_json = self.get_user_info_json()
+
+        kakao_account = user_info_json.get("kakao_account")
+        profile = kakao_account.get("profile")
+
+        email = kakao_account.get("email")
+        username = profile.get("nickname")
+        social_type = "kakao"
+
+        data = self.user_data(email=email, username=username, social_type=social_type)
+
+        return social_login_or_register(
+            request,
+            data=data,
+            email=email,
+            social_type=social_type,
+            response=data,
         )
-    except Exception as e:
-        return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    token_json = token_response.json()
-    access_token = token_json.get("access_token")
-    access_token = f"Bearer {access_token}"
-    auth_headers = {
-        "Authorization": access_token,
-    }
-
-    try:
-        user_info_response = requests.get(
-            KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"],
-            headers=auth_headers,
+    def get_user_info_json(self, **kwargs):
+        token_request_data, token_headers = self.token_data(
+            grant_type=self.grant_type,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            redirect_uri=self.redirect_uri,
+            code=self.code,
+            content_type=self.content_type,
         )
-    except Exception as e:
-        return Response({"error user_info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    user_info_json = user_info_response.json()
+        token_response = self.requests_post_token(
+            token_uri=self.token_uri,
+            token_request_data=token_request_data,
+            token_headers=token_headers,
+        )
 
-    kakao_account = user_info_json.get("kakao_account")
-    profile = kakao_account.get("profile")
+        auth_headers = self.transfer_token(
+            token_response=token_response,
+        )
 
-    email = kakao_account.get("email")
-    username = profile.get("nickname")
-    social_type = "kakao"
+        user_info_response = self.requests_get_user(
+            profile_uri=self.profile_uri,
+            auth_headers=auth_headers,
+        )
 
-    data = {
-        "email": email,
-        "username": username,
-        "social_type": social_type,
-    }
+        user_info_json = self.user_info_json(
+            user_info_response=user_info_response,
+        )
 
-    response = {
-        "social_type": social_type,
-        "user_email": email,
-        "username": username,
-    }
-    return social_login_or_register(
-        request,
-        data=data,
-        email=email,
-        social_type=social_type,
-        response=response,
-    )
+        return user_info_json
 
 
 @api_view(["GET"])
