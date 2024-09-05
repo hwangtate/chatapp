@@ -17,4 +17,6 @@ urlpatterns = [
     path("kakao/login/callback/", views.KakaoLoginCallbackAPIView.as_view(), name="kakao_callback"),
     path("google/login/", views.GoogleLoginAPIView.as_view(), name="google_login"),
     path("google/login/callback/", views.GoogleLoginCallbackAPIView.as_view(), name="google_callback"),
+    path("naver/login/", views.NaverLoginAPIView.as_view(), name="naver_login"),
+    path("naver/login/callback/", views.NaverLoginCallbackAPIView.as_view(), name="naver_callback"),
 ]

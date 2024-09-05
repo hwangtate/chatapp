@@ -197,6 +197,12 @@ class GoogleLoginAPIView(SocialLoginAPIView):
         return self.google_login()
 
 
+class NaverLoginAPIView(SocialLoginAPIView):
+
+    def get(self, request, *args, **kwargs):
+        pass
+
+
 # permission_classes = (AllowAny,)
 class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
@@ -268,3 +274,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
             social_type=social_type,
             response=data,
         )
+
+
+class NaverLoginCallbackAPIView(SocialCallbackAPIView):
+    pass
