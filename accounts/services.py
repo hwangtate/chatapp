@@ -91,15 +91,17 @@ class SocialLoginAPIView(APIView):
             url = self.basic_url()
             return url
 
-        elif google:
+        if google:
             scope = GOOGLE_CONFIG["SCOPE"]
             url = self.basic_url() + f"&scope={scope}"
             return url
 
-        elif naver:
+        if naver:
             state = signing.dumps(self.client_id)
             url = self.basic_url() + f"&state={state}"
             return url
+
+        return Response({"error": "invalid parameter value"}, status=status.HTTP_400_BAD_REQUEST)
 
     def basic_url(self):
         return f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
