@@ -32,18 +32,25 @@ KAKAO_CONFIG = {
     "LOGIN_URI": "https://kauth.kakao.com/oauth/authorize",
     "TOKEN_URI": "https://kauth.kakao.com/oauth/token",
     "PROFILE_URI": "https://kapi.kakao.com/v2/user/me",
-    "REDIRECT_URI": "http://127.0.0.1:8000/account/kakao/login/callback/",
+    "REDIRECT_URIS": "http://127.0.0.1:8000/account/kakao/login/callback/",
     # type
     "GRANT_TYPE": "authorization_code",
     "CONTENT_TYPE": "application/x-www-form-urlencoded;charset=utf-8",
 }
 
 GOOGLE_CONFIG = {
-    "GOOGLE_PROFILE_URI": "https://www.googleapis.com/oauth2/v3/userinfo",
-    "GOOGLE_CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID"),
-    "GOOGLE_LOGIN_URI": "https://accounts.google.com/o/oauth2/v2/auth",
-    "GOOGLE_TOKEN_URI": "https://oauth2.googleapis.com/token",
-    "GOOGLE_CLIENT_SECRET": os.getenv("GOOGLE_CLIENT_SECRET"),
-    "GOOGLE_REDIRECT_URIS": "http://127.0.0.1:8000/account/google/login/callback/",
-    "GOOGLE_SCOPE": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+    # key
+    "CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID"),
+    "CLIENT_SECRET": os.getenv("GOOGLE_CLIENT_SECRET"),
+    # uri
+    "PROFILE_URI": "https://www.googleapis.com/oauth2/v3/userinfo",
+    "LOGIN_URI": "https://accounts.google.com/o/oauth2/v2/auth",
+    "TOKEN_URI": "https://oauth2.googleapis.com/token",
+    "REDIRECT_URIS": "http://127.0.0.1:8000/account/google/login/callback/",
+    "SCOPE": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+    # type
+    "GRANT_TYPE": "authorization_code",
+    "CONTENT_TYPE": "application/x-www-form-urlencoded",
+    # host
+    "HOST": "oauth2.googleapis.com",
 }

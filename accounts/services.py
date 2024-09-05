@@ -92,17 +92,17 @@ class SocialLoginAPIView(APIView):
 
     def kakao_login(self):
         self.client_id = KAKAO_CONFIG["REST_API_KEY"]
-        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URI"]
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
         self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
         url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
 
         return redirect(url)
 
     def google_login(self):
-        self.client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
-        self.redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
-        self.login_uri = GOOGLE_CONFIG["GOOGLE_LOGIN_URI"]
-        scope = GOOGLE_CONFIG["GOOGLE_SCOPE"]
+        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
+        scope = GOOGLE_CONFIG["SCOPE"]
 
         url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&scope={scope}"
 

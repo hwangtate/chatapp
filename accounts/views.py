@@ -199,15 +199,16 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
         self.client_id = KAKAO_CONFIG["REST_API_KEY"]
         self.client_secret = KAKAO_CONFIG["CLIENT_SECRET_KEY"]
-        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URI"]
-        self.code = None
-        self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
         self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
         self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
+
+        self.code = None
+        self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
+        self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
@@ -235,16 +236,17 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.grant_type = "authorization_code"
-        self.client_id = GOOGLE_CONFIG["GOOGLE_CLIENT_ID"]
-        self.client_secret = GOOGLE_CONFIG["GOOGLE_CLIENT_SECRET"]
-        self.redirect_uri = GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"]
-        self.code = None
-        self.content_type = "application/x-www-form-urlencoded"
-        self.host = "oauth2.googleapis.com"
+        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        self.client_secret = GOOGLE_CONFIG["CLIENT_SECRET"]
 
-        self.token_uri = GOOGLE_CONFIG["GOOGLE_TOKEN_URI"]
-        self.profile_uri = GOOGLE_CONFIG["GOOGLE_PROFILE_URI"]
+        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        self.token_uri = GOOGLE_CONFIG["TOKEN_URI"]
+        self.profile_uri = GOOGLE_CONFIG["PROFILE_URI"]
+
+        self.code = None
+        self.grant_type = GOOGLE_CONFIG["GRANT_TYPE"]
+        self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
+        self.host = GOOGLE_CONFIG["HOST"]
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
