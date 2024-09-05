@@ -18,19 +18,12 @@ from coreapp.settings.development import GOOGLE_CONFIG
 """비즈니스, 서비스 로직을 구현 하는 파일 입니다."""
 
 
-class CommonDecodeSignerUser(APIView):
+class CommonDecodeSignerUser:
 
-    permission_classes = (AllowAny,)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
         self.code = None
         self.signer = None
         self.user = None
-
-    @abstractmethod
-    def get(self, request, *args, **kwargs):
-        pass
 
     def decode_signer(self, request):
         self.code = request.GET.get("code", "")
@@ -49,7 +42,7 @@ class CommonDecodeSignerUser(APIView):
         return self.handle_save_user(request)
 
     @abstractmethod
-    def handle_save_user(self, request, *args, **kwargs):
+    def handle_save_user(self, request):
         pass
 
 

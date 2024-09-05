@@ -156,12 +156,14 @@ def send_change_email_mail(request):
 
 
 # permission_classes = (AllowAny,)
-class VerifyEmail(CommonDecodeSignerUser):
+class VerifyEmail(CommonDecodeSignerUser, APIView):
 
-    def get(self, request, *args, **kwargs):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
         return self.decode_signer(request)
 
-    def handle_save_user(self, request, *args, **kwargs):
+    def handle_save_user(self, request):
         self.user.email_is_verified = True
         self.user.save()
 
@@ -169,12 +171,14 @@ class VerifyEmail(CommonDecodeSignerUser):
 
 
 # permission_classes = (AllowAny,)
-class ActivateUser(CommonDecodeSignerUser):
+class ActivateUser(CommonDecodeSignerUser, APIView):
 
-    def get(self, request, *args, **kwargs):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
         return self.decode_signer(request)
 
-    def handle_save_user(self, request, *args, **kwargs):
+    def handle_save_user(self, request):
         self.user.is_active = True
         self.user.email_is_verified = True
         self.user.save()
