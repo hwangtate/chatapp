@@ -180,6 +180,9 @@ class ActivateUser(CommonDecodeSignerUser):
         return Response({"message": "Account activated successfully."}, status=status.HTTP_200_OK)
 
 
+"""Social Account API"""
+
+
 # permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginAPIView(SocialLoginAPIView):
 
