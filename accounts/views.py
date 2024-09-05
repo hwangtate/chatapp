@@ -21,7 +21,7 @@ from accounts.services import (
     SocialLoginAPIView,
     SocialCallbackAPIView,
 )
-from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG
+from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -200,7 +200,7 @@ class GoogleLoginAPIView(SocialLoginAPIView):
 class NaverLoginAPIView(SocialLoginAPIView):
 
     def get(self, request, *args, **kwargs):
-        pass
+        return self.naver_login()
 
 
 # permission_classes = (AllowAny,)
@@ -221,7 +221,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, **kwargs)
+        user_info_json = self.get_user_info_json(self, content_type=self.content_type, **kwargs)
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
@@ -243,6 +243,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
 # permission_classes = (AllowAny,)
 class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
@@ -259,7 +260,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, host=self.host, **kwargs)
+        user_info_json = self.get_user_info_json(self, content_type=self.content_type, host=self.host, **kwargs)
 
         email = user_info_json.get("email")
         username = user_info_json.get("name")
@@ -277,4 +278,36 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
 
 
 class NaverLoginCallbackAPIView(SocialCallbackAPIView):
-    pass
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = NAVER_CONFIG["CLIENT_ID"]
+        self.client_secret = NAVER_CONFIG["CLIENT_SECRET"]
+
+        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
+        self.token_uri = NAVER_CONFIG["TOKEN_URI"]
+        self.profile_uri = NAVER_CONFIG["PROFILE_URI"]
+
+        self.code = None
+        self.grant_type = NAVER_CONFIG["GRANT_TYPE"]
+        self.state = None
+
+    def get(self, request, *args, **kwargs):
+        self.code = self.get_code(request)
+        self.state = self.get_state(request)
+        user_info_json = self.get_user_info_json(self, state=self.state, **kwargs)
+
+        naver_response = user_info_json.get("response")
+        email = naver_response.get("email")
+        username = naver_response.get("name")
+        social_type = "naver"
+
+        data = self.user_data(email=email, username=username, social_type=social_type)
+
+        return social_login_or_register(
+            request,
+            data=data,
+            email=email,
+            social_type=social_type,
+            response=data,
+        )

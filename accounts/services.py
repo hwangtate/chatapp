@@ -14,10 +14,7 @@ from rest_framework.views import APIView
 from accounts.models import CustomUser
 from accounts.permissions import IsLoggedIn
 from accounts.serializers import SocialRegisterSerializer
-from coreapp.settings.development import (
-    KAKAO_CONFIG,
-    GOOGLE_CONFIG,
-)
+from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
 
 """비즈니스, 서비스 로직을 구현 하는 파일 입니다."""
 
@@ -108,6 +105,16 @@ class SocialLoginAPIView(APIView):
 
         return redirect(url)
 
+    def naver_login(self):
+        self.client_id = NAVER_CONFIG["CLIENT_ID"]
+        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
+        self.login_uri = NAVER_CONFIG["LOGIN_URI"]
+        state = signing.dumps(self.client_id)
+
+        url = f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code&state={state}"
+
+        return redirect(url)
+
 
 class SocialCallbackAPIView(APIView):
 
@@ -130,7 +137,16 @@ class SocialCallbackAPIView(APIView):
         return code
 
     @staticmethod
-    def token_data(grant_type, client_id, client_secret, redirect_uri, code, content_type, **kwargs):
+    def get_state(request):
+        state = request.query_params.get("state")
+
+        if not state:
+            return Response({"error": "State Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return state
+
+    @staticmethod
+    def token_data(grant_type, client_id, client_secret, redirect_uri, code, **kwargs):
 
         token_request_data = {
             "grant_type": grant_type,
@@ -141,22 +157,32 @@ class SocialCallbackAPIView(APIView):
         }
 
         token_headers = {
-            "Content-type": content_type,
+            "Content-type": kwargs.get("content_type"),
         }
 
         if kwargs.get("host"):
             token_headers["Host"] = kwargs.get("host")
 
+        if kwargs.get("state"):
+            token_request_data["state"] = kwargs.get("state")
+
         return token_request_data, token_headers
 
     @staticmethod
-    def requests_post_token(token_uri, token_request_data, token_headers):
+    def requests_post_token(token_uri, token_request_data, **kwargs):
         try:
-            token_response = requests.post(
-                token_uri,
-                data=token_request_data,
-                headers=token_headers,
-            )
+            if kwargs.get("token_headers"):
+                token_response = requests.post(
+                    token_uri,
+                    data=token_request_data,
+                    headers=kwargs.get("token_headers"),
+                )
+            else:
+                token_response = requests.post(
+                    token_uri,
+                    data=token_request_data,
+                )
+
         except Exception as e:
             return Response({"error post token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -195,7 +221,8 @@ class SocialCallbackAPIView(APIView):
 
     @staticmethod
     def get_user_info_json(self, **kwargs):
-        if kwargs.get("host"):
+        # Google
+        if kwargs.get("host") and kwargs.get("content_type"):
             token_request_data, token_headers = self.token_data(
                 grant_type=self.grant_type,
                 client_id=self.client_id,
@@ -206,6 +233,17 @@ class SocialCallbackAPIView(APIView):
                 host=self.host,
             )
 
+        # Naver
+        elif kwargs.get("state"):
+            token_request_data, token_headers = self.token_data(
+                grant_type=self.grant_type,
+                client_id=self.client_id,
+                client_secret=self.client_secret,
+                redirect_uri=self.redirect_uri,
+                code=self.code,
+                state=self.state,
+            )
+        # Kakao
         else:
             token_request_data, token_headers = self.token_data(
                 grant_type=self.grant_type,
