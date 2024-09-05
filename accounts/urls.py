@@ -14,9 +14,9 @@ urlpatterns = [
     path("active/", views.ActivateUser.as_view(), name="activate_user"),
     # 소셜 회원가입, 로그인
     path("kakao/login/", views.KakaoLoginAPIView.as_view(), name="kakao_login"),
-    path("kakao/login/callback/", views.KakaoLoginCallbackAPIView.as_view(), name="kakao_callback"),
+    path("kakao/login/callback/", views.KakaoLoginCallback.as_view(), name="kakao_callback"),
     path("google/login/", views.GoogleLoginAPIView.as_view(), name="google_login"),
-    path("google/login/callback/", views.GoogleLoginCallbackAPIView.as_view(), name="google_callback"),
+    path("google/login/callback/", views.GoogleLoginCallback.as_view(), name="google_callback"),
     path("naver/login/", views.NaverLoginAPIView.as_view(), name="naver_login"),
-    path("naver/login/callback/", views.NaverLoginCallbackAPIView.as_view(), name="naver_callback"),
+    path("naver/login/callback/", views.NaverLoginCallback.as_view(), name="naver_callback"),
 ]

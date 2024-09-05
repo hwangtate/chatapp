@@ -1,9 +1,11 @@
 from django.contrib.auth import login, logout
+from django.shortcuts import redirect
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from accounts.serializers import (
@@ -19,7 +21,7 @@ from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
     SocialLoginAPIView,
-    SocialCallbackAPIView,
+    SocialCallback,
 )
 from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
 
@@ -186,26 +188,45 @@ class ActivateUser(CommonDecodeSignerUser):
 # permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginAPIView(SocialLoginAPIView):
 
-    def get(self, request, *args, **kwargs):
-        return self.kakao_login()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
+        self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
+
+    def get(self, request):
+        return redirect(self.social_login(kakao=True))
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginAPIView(SocialLoginAPIView):
 
-    def get(self, request, *args, **kwargs):
-        return self.google_login()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
+
+    def get(self, request):
+        return redirect(self.social_login(google=True))
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginAPIView(SocialLoginAPIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = NAVER_CONFIG["CLIENT_ID"]
+        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
+        self.login_uri = NAVER_CONFIG["LOGIN_URI"]
 
-    def get(self, request, *args, **kwargs):
-        return self.naver_login()
+    def get(self, request):
+        return redirect(self.social_login(naver=True))
 
 
-# permission_classes = (AllowAny,)
-class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
+# permission_classes = (AllowAny, IsLoggedIn)
+class KakaoLoginCallback(SocialCallback, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -220,9 +241,9 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
         self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
         self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, content_type=self.content_type, **kwargs)
+        user_info_json = self.get_user_info_json()
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
@@ -231,7 +252,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
         username = profile.get("nickname")
         social_type = "kakao"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
@@ -242,8 +263,10 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
         )
 
 
-# permission_classes = (AllowAny,)
-class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
+# permission_classes = (AllowAny, IsLoggedIn)
+class GoogleLoginCallback(SocialCallback, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -259,15 +282,15 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
         self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
         self.host = GOOGLE_CONFIG["HOST"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, content_type=self.content_type, host=self.host, **kwargs)
+        user_info_json = self.get_user_info_json(host=self.host)
 
         email = user_info_json.get("email")
         username = user_info_json.get("name")
         social_type = "google"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
@@ -278,8 +301,10 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
         )
 
 
-# permission_classes = (AllowAny,)
-class NaverLoginCallbackAPIView(SocialCallbackAPIView):
+# permission_classes = (AllowAny, IsLoggedIn)
+class NaverLoginCallback(SocialCallback, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -292,19 +317,21 @@ class NaverLoginCallbackAPIView(SocialCallbackAPIView):
 
         self.code = None
         self.grant_type = NAVER_CONFIG["GRANT_TYPE"]
+        self.content_type = NAVER_CONFIG["CONTENT_TYPE"]
         self.state = None
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
         self.state = self.get_state(request)
-        user_info_json = self.get_user_info_json(self, state=self.state, **kwargs)
+
+        user_info_json = self.get_user_info_json(state=self.state)
 
         naver_response = user_info_json.get("response")
         email = naver_response.get("email")
         username = naver_response.get("name")
         social_type = "naver"
 
-        data = self.user_data(email=email, username=username, social_type=social_type)
+        data = self.get_user_data(email=email, username=username, social_type=social_type)
 
         return social_login_or_register(
             request,
