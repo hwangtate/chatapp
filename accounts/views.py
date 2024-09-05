@@ -235,7 +235,7 @@ class NaverLogin(SocialLogin, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginLoginCallback(SocialLoginCallback, APIView):
+class KakaoLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
@@ -275,7 +275,7 @@ class KakaoLoginLoginCallback(SocialLoginCallback, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class GoogleLoginLoginCallback(SocialLoginCallback, APIView):
+class GoogleLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
@@ -313,7 +313,7 @@ class GoogleLoginLoginCallback(SocialLoginCallback, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class NaverLoginLoginCallback(SocialLoginCallback, APIView):
+class NaverLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
