@@ -93,7 +93,7 @@ class SocialLogin:
         return f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
 
 
-class SocialCallback:
+class SocialLoginCallback:
 
     permission_classes = (AllowAny, IsLoggedIn)
 
