@@ -8,14 +8,11 @@ from django.core.signing import TimestampSigner, SignatureExpired
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from accounts.permissions import IsLoggedIn
 from accounts.serializers import SocialRegisterSerializer
 from coreapp.settings.development import GOOGLE_CONFIG
-
-"""비즈니스, 서비스 로직을 구현 하는 파일 입니다."""
 
 
 class CommonDecodeSignerUser:
