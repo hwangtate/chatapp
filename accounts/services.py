@@ -1,5 +1,6 @@
 from abc import abstractmethod
 
+import requests
 from django.contrib.auth import login
 from django.core import signing
 from django.core.signing import TimestampSigner, SignatureExpired
@@ -20,25 +21,6 @@ from coreapp.settings.development import (
 )
 
 """비즈니스, 서비스 로직을 구현 하는 파일 입니다."""
-
-
-def social_login_or_register(request, data, email, social_type, response):
-
-    if CustomUser.objects.filter(email=email, social_type=social_type).exists():
-        user = CustomUser.objects.get(email=email)
-        login(request, user)
-
-        return Response(response, status=status.HTTP_200_OK)
-
-    serializer = SocialRegisterSerializer(data=data)
-
-    if serializer.is_valid():
-        user = serializer.save()
-        login(request, user)
-
-        return Response(response, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommonDecodeSignerUser(APIView):
@@ -88,9 +70,7 @@ class CommonDecodeSignerUser(APIView):
             self.user = CustomUser.objects.get(email=email)
 
         except SignatureExpired:
-            return Response(
-                {"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "expired time"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -100,6 +80,25 @@ class CommonDecodeSignerUser(APIView):
     @abstractmethod
     def handle_save_user(self, request, *args, **kwargs):
         pass
+
+
+def social_login_or_register(request, data, email, social_type, response):
+
+    if CustomUser.objects.filter(email=email, social_type=social_type).exists():
+        user = CustomUser.objects.get(email=email)
+        login(request, user)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    serializer = SocialRegisterSerializer(data=data)
+
+    if serializer.is_valid():
+        user = serializer.save()
+        login(request, user)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SocialLoginAPIView(APIView):
@@ -136,11 +135,85 @@ class SocialLoginAPIView(APIView):
         return redirect(url)
 
 
-class SocialCallBackAPIView(APIView):
+class SocialCallbackAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    @abstractmethod
     def get(self, request, *args, **kwargs):
         pass
+
+    @staticmethod
+    def get_code(request):
+        code = request.query_params.get("code")
+
+        if not code:
+            return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return code
+
+    @staticmethod
+    def token_data(grant_type, client_id, client_secret, redirect_uri, code, content_type, **kwargs):
+
+        token_request_data = {
+            "grant_type": grant_type,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "code": code,
+        }
+
+        token_headers = {
+            "Content-type": content_type,
+        }
+
+        if kwargs.get("host"):
+            token_headers["Host"] = kwargs.get("host")
+
+        return token_request_data, token_headers
+
+    @staticmethod
+    def requests_post_token(token_uri, token_request_data, token_headers):
+        try:
+            token_response = requests.post(
+                token_uri,
+                data=token_request_data,
+                headers=token_headers,
+            )
+        except Exception as e:
+            return Response({"error post token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return token_response
+
+    @staticmethod
+    def transfer_token(token_response):
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+        access_token = f"Bearer {access_token}"
+        auth_headers = {
+            "Authorization": access_token,
+        }
+
+        return auth_headers
+
+    @staticmethod
+    def requests_get_user(profile_uri, auth_headers):
+        try:
+            user_info_response = requests.get(
+                profile_uri,
+                headers=auth_headers,
+            )
+        except Exception as e:
+            return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return user_info_response
+
+    @staticmethod
+    def user_info_json(user_info_response):
+        return user_info_response.json()
+
+    @staticmethod
+    def user_data(email, username, social_type):
+        return {"email": email, "username": username, "social_type": social_type}
