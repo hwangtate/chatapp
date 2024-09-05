@@ -46,6 +46,7 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 │  ├─ models.py
 │  ├─ permissions.py
 │  ├─ serializers.py
+│  ├─ services.py
 │  ├─ tests.py
 │  ├─ tokens.py
 │  ├─ urls.py
@@ -76,9 +77,13 @@ Django에서 django-allauth를 쓰지 않고 Account에 관련된 모든 API를 
 - [X] Send EmailChange Mail API
 - [X] Social Register API
 - [X] Social Login API
+- [X] Social Callback API
 - [X] Kakao Login API
+- [X] Kakao Callback API
 - [X] Google Login API
-- [ ] Naver Login API
+- [X] Google Callback API
+- [X] Naver Login API
+- [X] Naver Callback API
 
 
 
