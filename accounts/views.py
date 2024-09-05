@@ -20,7 +20,7 @@ from accounts.permissions import IsEmailVerified, IsCommonUser, IsLoggedIn
 from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
-    SocialLoginAPIView,
+    SocialLogin,
     SocialCallback,
 )
 from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
@@ -190,7 +190,9 @@ class ActivateUser(CommonDecodeSignerUser, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginAPIView(SocialLoginAPIView):
+class KakaoLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -203,7 +205,9 @@ class KakaoLoginAPIView(SocialLoginAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class GoogleLoginAPIView(SocialLoginAPIView):
+class GoogleLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -216,7 +220,10 @@ class GoogleLoginAPIView(SocialLoginAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class NaverLoginAPIView(SocialLoginAPIView):
+class NaverLogin(SocialLogin, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.client_id = NAVER_CONFIG["CLIENT_ID"]

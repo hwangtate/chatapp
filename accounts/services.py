@@ -65,19 +65,12 @@ def social_login_or_register(request, data, email, social_type, response):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SocialLoginAPIView(APIView):
+class SocialLogin:
 
-    permission_classes = (AllowAny, IsLoggedIn)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
         self.client_id = None
         self.redirect_uri = None
         self.login_uri = None
-
-    @abstractmethod
-    def get(self, request):
-        pass
 
     def social_login(self, kakao=None, google=None, naver=None):
         if kakao:
