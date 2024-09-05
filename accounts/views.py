@@ -1,5 +1,3 @@
-import requests
-
 from django.contrib.auth import login, logout
 
 from rest_framework import status
@@ -23,11 +21,7 @@ from accounts.services import (
     SocialLoginAPIView,
     SocialCallbackAPIView,
 )
-from coreapp.settings.development import (
-    KAKAO_KEY_CONFIG,
-    KAKAO_URI_CONFIG,
-    GOOGLE_CONFIG,
-)
+from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -186,6 +180,9 @@ class ActivateUser(CommonDecodeSignerUser):
         return Response({"message": "Account activated successfully."}, status=status.HTTP_200_OK)
 
 
+"""Social Account API"""
+
+
 # permission_classes = (AllowAny, IsLoggedIn)
 class KakaoLoginAPIView(SocialLoginAPIView):
 
@@ -200,23 +197,25 @@ class GoogleLoginAPIView(SocialLoginAPIView):
         return self.google_login()
 
 
+# permission_classes = (AllowAny,)
 class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.grant_type = "authorization_code"
-        self.client_id = (KAKAO_KEY_CONFIG["KAKAO_REST_API_KEY"],)
-        self.client_secret = KAKAO_KEY_CONFIG["KAKAO_CLIENT_SECRET_KEY"]
-        self.redirect_uri = KAKAO_URI_CONFIG["KAKAO_REDIRECT_URI"]
-        self.code = None
-        self.content_type = "application/x-www-form-urlencoded;charset=utf-8"
+        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
+        self.client_secret = KAKAO_CONFIG["CLIENT_SECRET_KEY"]
 
-        self.token_uri = KAKAO_URI_CONFIG["KAKAO_TOKEN_URI"]
-        self.profile_uri = KAKAO_URI_CONFIG["KAKAO_PROFILE_URI"]
+        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
+        self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
+        self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
+
+        self.code = None
+        self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
+        self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json()
+        user_info_json = self.get_user_info_json(self, **kwargs)
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
@@ -235,103 +234,37 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
             response=data,
         )
 
-    def get_user_info_json(self, **kwargs):
-        token_request_data, token_headers = self.token_data(
-            grant_type=self.grant_type,
-            client_id=self.client_id,
-            client_secret=self.client_secret,
-            redirect_uri=self.redirect_uri,
-            code=self.code,
-            content_type=self.content_type,
+
+# permission_classes = (AllowAny,)
+class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        self.client_secret = GOOGLE_CONFIG["CLIENT_SECRET"]
+
+        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        self.token_uri = GOOGLE_CONFIG["TOKEN_URI"]
+        self.profile_uri = GOOGLE_CONFIG["PROFILE_URI"]
+
+        self.code = None
+        self.grant_type = GOOGLE_CONFIG["GRANT_TYPE"]
+        self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
+        self.host = GOOGLE_CONFIG["HOST"]
+
+    def get(self, request, *args, **kwargs):
+        self.code = self.get_code(request)
+        user_info_json = self.get_user_info_json(self, host=self.host, **kwargs)
+
+        email = user_info_json.get("email")
+        username = user_info_json.get("name")
+        social_type = "google"
+
+        data = self.user_data(email=email, username=username, social_type=social_type)
+
+        return social_login_or_register(
+            request,
+            data=data,
+            email=email,
+            social_type=social_type,
+            response=data,
         )
-
-        token_response = self.requests_post_token(
-            token_uri=self.token_uri,
-            token_request_data=token_request_data,
-            token_headers=token_headers,
-        )
-
-        auth_headers = self.transfer_token(
-            token_response=token_response,
-        )
-
-        user_info_response = self.requests_get_user(
-            profile_uri=self.profile_uri,
-            auth_headers=auth_headers,
-        )
-
-        user_info_json = self.user_info_json(
-            user_info_response=user_info_response,
-        )
-
-        return user_info_json
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def google_callback(request):
-    code = request.query_params.get("code")
-
-    if not code:
-        return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
-
-    token_request_data = {
-        "grant_type": "authorization_code",
-        "client_id": GOOGLE_CONFIG["GOOGLE_CLIENT_ID"],
-        "client_secret": GOOGLE_CONFIG["GOOGLE_CLIENT_SECRET"],
-        "code": code,
-        "redirect_uri": GOOGLE_CONFIG["GOOGLE_REDIRECT_URIS"],
-    }
-    token_headers = {
-        "Content-type": "application/x-www-form-urlencoded",
-        "Host": "oauth2.googleapis.com",
-    }
-
-    try:
-        token_response = requests.post(
-            GOOGLE_CONFIG["GOOGLE_TOKEN_URI"],
-            data=token_request_data,
-            headers=token_headers,
-        )
-    except Exception as e:
-        return Response({"error token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    token_json = token_response.json()
-    access_token = token_json.get("access_token")
-    access_token = f"Bearer {access_token}"
-    auth_headers = {
-        "Authorization": access_token,
-    }
-
-    try:
-        user_info_response = requests.get(
-            GOOGLE_CONFIG["GOOGLE_PROFILE_URI"],
-            headers=auth_headers,
-        )
-    except Exception as e:
-        return Response({"error user_info": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    user_info_json = user_info_response.json()
-    email = user_info_json.get("email")
-    username = user_info_json.get("name")
-    social_type = "google"
-
-    data = {
-        "email": email,
-        "username": username,
-        "social_type": social_type,
-    }
-
-    response = {
-        "social_type": social_type,
-        "user_email": email,
-        "username": username,
-    }
-
-    return social_login_or_register(
-        request,
-        data=data,
-        email=email,
-        social_type=social_type,
-        response=response,
-    )
