@@ -194,7 +194,7 @@ class KakaoLoginAPIView(SocialLoginAPIView):
         self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
         self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         return redirect(self.social_login(kakao=True))
 
 
@@ -207,7 +207,7 @@ class GoogleLoginAPIView(SocialLoginAPIView):
         self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
         self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         return redirect(self.social_login(google=True))
 
 
@@ -219,7 +219,7 @@ class NaverLoginAPIView(SocialLoginAPIView):
         self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
         self.login_uri = NAVER_CONFIG["LOGIN_URI"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         return redirect(self.social_login(naver=True))
 
 
@@ -241,7 +241,7 @@ class KakaoLoginCallback(SocialCallback, APIView):
         self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
         self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
         user_info_json = self.get_user_info_json()
 
@@ -266,6 +266,8 @@ class KakaoLoginCallback(SocialCallback, APIView):
 # permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginCallback(SocialCallback, APIView):
 
+    permission_classes = (AllowAny, IsLoggedIn)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
@@ -280,7 +282,7 @@ class GoogleLoginCallback(SocialCallback, APIView):
         self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
         self.host = GOOGLE_CONFIG["HOST"]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
         user_info_json = self.get_user_info_json(host=self.host)
 
@@ -302,6 +304,8 @@ class GoogleLoginCallback(SocialCallback, APIView):
 # permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginCallback(SocialCallback, APIView):
 
+    permission_classes = (AllowAny, IsLoggedIn)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.client_id = NAVER_CONFIG["CLIENT_ID"]
@@ -316,7 +320,7 @@ class NaverLoginCallback(SocialCallback, APIView):
         self.content_type = NAVER_CONFIG["CONTENT_TYPE"]
         self.state = None
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         self.code = self.get_code(request)
         self.state = self.get_state(request)
 

@@ -83,7 +83,7 @@ class SocialLoginAPIView(APIView):
         self.login_uri = None
 
     @abstractmethod
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         pass
 
     def social_login(self, kakao=None, google=None, naver=None):
