@@ -66,4 +66,5 @@ NAVER_CONFIG = {
     "REDIRECT_URIS": "http://127.0.0.1:8000/account/naver/login/callback/",
     # type
     "GRANT_TYPE": "authorization_code",
+    "CONTENT_TYPE": "application/x-www-form-urlencoded",
 }

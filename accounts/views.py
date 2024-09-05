@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from accounts.serializers import (
@@ -20,7 +21,7 @@ from accounts.services import (
     social_login_or_register,
     CommonDecodeSignerUser,
     SocialLoginAPIView,
-    SocialCallbackAPIView,
+    SocialCallback,
 )
 from coreapp.settings.development import KAKAO_CONFIG, GOOGLE_CONFIG, NAVER_CONFIG
 
@@ -223,7 +224,9 @@ class NaverLoginAPIView(SocialLoginAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
+class KakaoLoginCallback(SocialCallback, APIView):
+
+    permission_classes = (AllowAny, IsLoggedIn)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -240,7 +243,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, content_type=self.content_type, **kwargs)
+        user_info_json = self.get_user_info_json()
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
@@ -261,7 +264,7 @@ class KakaoLoginCallbackAPIView(SocialCallbackAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
+class GoogleLoginCallback(SocialCallback, APIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -279,7 +282,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(self, content_type=self.content_type, host=self.host, **kwargs)
+        user_info_json = self.get_user_info_json(host=self.host)
 
         email = user_info_json.get("email")
         username = user_info_json.get("name")
@@ -297,7 +300,7 @@ class GoogleLoginCallbackAPIView(SocialCallbackAPIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class NaverLoginCallbackAPIView(SocialCallbackAPIView):
+class NaverLoginCallback(SocialCallback, APIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -310,12 +313,14 @@ class NaverLoginCallbackAPIView(SocialCallbackAPIView):
 
         self.code = None
         self.grant_type = NAVER_CONFIG["GRANT_TYPE"]
+        self.content_type = NAVER_CONFIG["CONTENT_TYPE"]
         self.state = None
 
     def get(self, request, *args, **kwargs):
         self.code = self.get_code(request)
         self.state = self.get_state(request)
-        user_info_json = self.get_user_info_json(self, state=self.state, **kwargs)
+
+        user_info_json = self.get_user_info_json(state=self.state)
 
         naver_response = user_info_json.get("response")
         email = naver_response.get("email")
