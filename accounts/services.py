@@ -91,111 +91,71 @@ class SocialLogin:
 
 
 class SocialLoginCallback:
-    """
-    2번 이상 사용하는 변수들은 인스턴스 변수로 선언함
-    """
 
-    permission_classes = (AllowAny, IsLoggedIn)
+    @staticmethod
+    def get_code(request):
+        code = request.query_params.get("code", None)
+        return code
 
-    def __init__(self):
-        self.grant_type = None
-        self.client_id = None
-        self.client_secret = None
-        self.redirect_uri = None
-        self.content_type = None
-        self.profile_uri = None
+    @staticmethod
+    def get_state(request):
+        state = request.query_params.get("state", None)
+        return state
 
-        self.token_uri = None
-        self.token_headers = None
-        self.token_request_data = None
-        self.token_response = None
+    @abstractmethod
+    def get_social_provider_data(self, request):
+        pass
 
-        self.code = None
-        self.state = None
-        self.host = None
-
-        self.auth_headers = None
-        self.user_info_response = None
-
-    def get_code(self, request):
-        self.code = request.query_params.get("code", None)
-
-        return self.code
-
-    def get_state(self, request):
-        self.state = request.query_params.get("state", None)
-
-        return self.state
-
-    def token_data(self):
-        self.token_request_data = {
-            "grant_type": self.grant_type,
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "redirect_uri": self.redirect_uri,
-            "code": self.code,
-        }
-
-        self.token_headers = {
-            "Content-type": self.content_type,
-        }
-
-        if self.host is not None:
-            self.token_headers["host"] = self.host
-
-        if self.state is not None:
-            self.token_request_data["state"] = self.state
-
-        return self.token_request_data, self.token_headers
-
-    def requests_post_token(self):
+    @staticmethod
+    def requests_post_token(token_uri, token_request_data, token_headers):
         try:
-            self.token_response = requests.post(
-                self.token_uri,
-                data=self.token_request_data,
-                headers=self.token_headers,
+            token_response = requests.post(
+                token_uri,
+                data=token_request_data,
+                headers=token_headers,
             )
 
-            return self.token_response
+            return token_response
 
         except Exception as e:
             return Response({"error post token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def transfer_token(self):
-        token_json = self.token_response.json()
+    @staticmethod
+    def transfer_token(token_response):
+        token_json = token_response.json()
         access_token = token_json.get("access_token")
-        self.auth_headers = {
+        auth_headers = {
             "Authorization": f"Bearer {access_token}",
         }
 
-        return self.auth_headers
+        return auth_headers
 
-    def requests_get_user(self):
+    @staticmethod
+    def requests_get_user(profile_uri, auth_headers):
         try:
-            self.user_info_response = requests.get(
-                self.profile_uri,
-                headers=self.auth_headers,
+            user_info_response = requests.get(
+                profile_uri,
+                headers=auth_headers,
             )
 
-            return self.user_info_response
+            return user_info_response
 
         except Exception as e:
             return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def user_info_json(self):
-        user_info_data = self.user_info_response.json()
+    @staticmethod
+    def user_info_json(user_info_response):
+        user_info_data = user_info_response.json()
 
         return user_info_data
 
     def get_user_info_json(self, request):
-        self.code = self.get_code(request)
-        self.state = self.get_state(request)
-        self.token_request_data, self.token_headers = self.token_data()
-        self.token_response = self.requests_post_token()
-        self.auth_headers = self.transfer_token()
-        self.user_info_response = self.requests_get_user()
+        token_request_data, token_headers, social_uri = self.get_social_provider_data(request)
+        token_response = self.requests_post_token(social_uri["token_uri"], token_request_data, token_headers)
+        auth_headers = self.transfer_token(token_response)
+        user_info_response = self.requests_get_user(social_uri["profile_uri"], auth_headers)
 
-        user_info_data = self.user_info_json()
+        user_info_data = self.user_info_json(user_info_response)
 
         return user_info_data
 

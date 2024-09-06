@@ -239,18 +239,6 @@ class KakaoLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
-        self.client_secret = KAKAO_CONFIG["CLIENT_SECRET_KEY"]
-
-        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
-        self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
-        self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
-
-        self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
-        self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
-
     def get(self, request):
         user_info_json = self.get_user_info_json(request)
 
@@ -271,24 +259,32 @@ class KakaoLoginCallback(SocialLoginCallback, APIView):
             response=data,
         )
 
+    def get_social_provider_data(self, request):
+        token_request_data = {
+            "grant_type": KAKAO_CONFIG["GRANT_TYPE"],
+            "client_id": KAKAO_CONFIG["REST_API_KEY"],
+            "client_secret": KAKAO_CONFIG["CLIENT_SECRET_KEY"],
+            "redirect_uri": KAKAO_CONFIG["REDIRECT_URIS"],
+            "code": self.get_code(request),
+        }
+
+        token_headers = {
+            "Content-type": KAKAO_CONFIG["CONTENT_TYPE"],
+            "state": self.get_state(request),
+        }
+
+        social_uri = {
+            "token_uri": KAKAO_CONFIG["TOKEN_URI"],
+            "profile_uri": KAKAO_CONFIG["PROFILE_URI"],
+        }
+
+        return token_request_data, token_headers, social_uri
+
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class GoogleLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
-        self.client_secret = GOOGLE_CONFIG["CLIENT_SECRET"]
-
-        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
-        self.token_uri = GOOGLE_CONFIG["TOKEN_URI"]
-        self.profile_uri = GOOGLE_CONFIG["PROFILE_URI"]
-
-        self.grant_type = GOOGLE_CONFIG["GRANT_TYPE"]
-        self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
-        self.host = GOOGLE_CONFIG["HOST"]
 
     def get(self, request):
         user_info_json = self.get_user_info_json(request)
@@ -307,23 +303,32 @@ class GoogleLoginCallback(SocialLoginCallback, APIView):
             response=data,
         )
 
+    def get_social_provider_data(self, request):
+        token_request_data = {
+            "grant_type": GOOGLE_CONFIG["GRANT_TYPE"],
+            "client_id": GOOGLE_CONFIG["CLIENT_ID"],
+            "client_secret": GOOGLE_CONFIG["CLIENT_SECRET"],
+            "redirect_uri": GOOGLE_CONFIG["REDIRECT_URIS"],
+            "code": self.get_code(request),
+        }
+
+        token_headers = {
+            "Content-type": GOOGLE_CONFIG["CONTENT_TYPE"],
+            "host": GOOGLE_CONFIG["HOST"],
+        }
+
+        social_uri = {
+            "token_uri": GOOGLE_CONFIG["TOKEN_URI"],
+            "profile_uri": GOOGLE_CONFIG["PROFILE_URI"],
+        }
+
+        return token_request_data, token_headers, social_uri
+
 
 # permission_classes = (AllowAny, IsLoggedIn)
 class NaverLoginCallback(SocialLoginCallback, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = NAVER_CONFIG["CLIENT_ID"]
-        self.client_secret = NAVER_CONFIG["CLIENT_SECRET"]
-
-        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
-        self.token_uri = NAVER_CONFIG["TOKEN_URI"]
-        self.profile_uri = NAVER_CONFIG["PROFILE_URI"]
-
-        self.grant_type = NAVER_CONFIG["GRANT_TYPE"]
-        self.content_type = NAVER_CONFIG["CONTENT_TYPE"]
 
     def get(self, request):
         user_info_json = self.get_user_info_json(request)
@@ -342,3 +347,23 @@ class NaverLoginCallback(SocialLoginCallback, APIView):
             social_type=social_type,
             response=data,
         )
+
+    def get_social_provider_data(self, request):
+        token_request_data = {
+            "grant_type": NAVER_CONFIG["GRANT_TYPE"],
+            "client_id": NAVER_CONFIG["CLIENT_ID"],
+            "client_secret": NAVER_CONFIG["CLIENT_SECRET"],
+            "redirect_uri": NAVER_CONFIG["REDIRECT_URIS"],
+            "code": self.get_code(request),
+        }
+
+        token_headers = {
+            "Content-type": NAVER_CONFIG["CONTENT_TYPE"],
+        }
+
+        social_uri = {
+            "token_uri": NAVER_CONFIG["TOKEN_URI"],
+            "profile_uri": NAVER_CONFIG["PROFILE_URI"],
+        }
+
+        return token_request_data, token_headers, social_uri
