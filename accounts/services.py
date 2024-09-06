@@ -91,6 +91,9 @@ class SocialLogin:
 
 
 class SocialLoginCallback:
+    """
+    2번 이상 사용하는 변수들은 인스턴스 변수로 선언함
+    """
 
     permission_classes = (AllowAny, IsLoggedIn)
 
@@ -102,66 +105,55 @@ class SocialLoginCallback:
         self.content_type = None
         self.profile_uri = None
 
-        self.code = None
-        self.state = None
-        self.host = None
-
         self.token_uri = None
         self.token_headers = None
         self.token_request_data = None
         self.token_response = None
 
+        self.code = None
+        self.state = None
+        self.host = None
+
         self.auth_headers = None
-
         self.user_info_response = None
-        self.user_info_data = None
-
-        self.user_data = None
 
     def get_code(self, request):
-        self.code = request.query_params.get("code")
-
-        if not self.code:
-            return Response({"error": "Code Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+        self.code = request.query_params.get("code", None)
 
         return self.code
 
     def get_state(self, request):
-        self.state = request.query_params.get("state")
-
-        if not self.state:
-            return Response({"error": "State Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+        self.state = request.query_params.get("state", None)
 
         return self.state
 
-    def token_data(self, grant_type, client_id, client_secret, redirect_uri, code, content_type, **kwargs):
+    def token_data(self):
         self.token_request_data = {
-            "grant_type": grant_type,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "redirect_uri": redirect_uri,
-            "code": code,
-            "content_type": content_type,
+            "grant_type": self.grant_type,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "redirect_uri": self.redirect_uri,
+            "code": self.code,
         }
 
         self.token_headers = {
-            "Content-type": kwargs.get("content_type"),
+            "Content-type": self.content_type,
         }
 
-        if kwargs.get("host"):
-            self.token_headers["host"] = kwargs.get("host")
+        if self.host is not None:
+            self.token_headers["host"] = self.host
 
-        if kwargs.get("state"):
-            self.token_request_data["state"] = kwargs.get("state")
+        if self.state is not None:
+            self.token_request_data["state"] = self.state
 
         return self.token_request_data, self.token_headers
 
-    def requests_post_token(self, token_uri, token_request_data, **kwargs):
+    def requests_post_token(self):
         try:
             self.token_response = requests.post(
-                token_uri,
-                data=token_request_data,
-                headers=kwargs.get("token_headers"),
+                self.token_uri,
+                data=self.token_request_data,
+                headers=self.token_headers,
             )
 
             return self.token_response
@@ -169,8 +161,8 @@ class SocialLoginCallback:
         except Exception as e:
             return Response({"error post token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def transfer_token(self, token_response):
-        token_json = token_response.json()
+    def transfer_token(self):
+        token_json = self.token_response.json()
         access_token = token_json.get("access_token")
         self.auth_headers = {
             "Authorization": f"Bearer {access_token}",
@@ -178,11 +170,11 @@ class SocialLoginCallback:
 
         return self.auth_headers
 
-    def requests_get_user(self, profile_uri, auth_headers):
+    def requests_get_user(self):
         try:
             self.user_info_response = requests.get(
-                profile_uri,
-                headers=auth_headers,
+                self.profile_uri,
+                headers=self.auth_headers,
             )
 
             return self.user_info_response
@@ -190,50 +182,25 @@ class SocialLoginCallback:
         except Exception as e:
             return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def user_info_json(self, user_info_response):
-        self.user_info_data = user_info_response.json()
+    def user_info_json(self):
+        user_info_data = self.user_info_response.json()
 
-        return self.user_info_data
+        return user_info_data
 
-    def get_user_info_json(self, **kwargs):
-        # kakao(basic)
-        self.token_request_data, self.token_headers = self.token_data(
-            grant_type=self.grant_type,
-            client_id=self.client_id,
-            client_secret=self.client_secret,
-            redirect_uri=self.redirect_uri,
-            code=self.code,
-            content_type=self.content_type,
-        )
+    def get_user_info_json(self, request):
+        self.code = self.get_code(request)
+        self.state = self.get_state(request)
+        self.token_request_data, self.token_headers = self.token_data()
+        self.token_response = self.requests_post_token()
+        self.auth_headers = self.transfer_token()
+        self.user_info_response = self.requests_get_user()
 
-        # Google
-        if kwargs.get("host"):
-            self.token_request_data["host"] = self.host
+        user_info_data = self.user_info_json()
 
-        # Naver
-        elif kwargs.get("state"):
-            self.token_request_data["state"] = self.state
+        return user_info_data
 
-        self.token_response = self.requests_post_token(
-            token_uri=self.token_uri,
-            token_request_data=self.token_request_data,
-            token_headers=self.token_headers,
-        )
+    @staticmethod
+    def get_user_data(email, username, social_type):
+        user_data = {"email": email, "username": username, "social_type": social_type}
 
-        self.auth_headers = self.transfer_token(
-            token_response=self.token_response,
-        )
-
-        self.user_info_response = self.requests_get_user(
-            profile_uri=self.profile_uri,
-            auth_headers=self.auth_headers,
-        )
-
-        self.user_info_data = self.user_info_json(self.user_info_response)
-
-        return self.user_info_data
-
-    def get_user_data(self, email, username, social_type):
-        self.user_data = {"email": email, "username": username, "social_type": social_type}
-
-        return self.user_data
+        return user_data

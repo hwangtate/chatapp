@@ -248,13 +248,11 @@ class KakaoLoginCallback(SocialLoginCallback, APIView):
         self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
         self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
 
-        self.code = None
         self.grant_type = KAKAO_CONFIG["GRANT_TYPE"]
         self.content_type = KAKAO_CONFIG["CONTENT_TYPE"]
 
     def get(self, request):
-        self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json()
+        user_info_json = self.get_user_info_json(request)
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
@@ -288,14 +286,12 @@ class GoogleLoginCallback(SocialLoginCallback, APIView):
         self.token_uri = GOOGLE_CONFIG["TOKEN_URI"]
         self.profile_uri = GOOGLE_CONFIG["PROFILE_URI"]
 
-        self.code = None
         self.grant_type = GOOGLE_CONFIG["GRANT_TYPE"]
         self.content_type = GOOGLE_CONFIG["CONTENT_TYPE"]
         self.host = GOOGLE_CONFIG["HOST"]
 
     def get(self, request):
-        self.code = self.get_code(request)
-        user_info_json = self.get_user_info_json(host=self.host)
+        user_info_json = self.get_user_info_json(request)
 
         email = user_info_json.get("email")
         username = user_info_json.get("name")
@@ -326,16 +322,11 @@ class NaverLoginCallback(SocialLoginCallback, APIView):
         self.token_uri = NAVER_CONFIG["TOKEN_URI"]
         self.profile_uri = NAVER_CONFIG["PROFILE_URI"]
 
-        self.code = None
         self.grant_type = NAVER_CONFIG["GRANT_TYPE"]
         self.content_type = NAVER_CONFIG["CONTENT_TYPE"]
-        self.state = None
 
     def get(self, request):
-        self.code = self.get_code(request)
-        self.state = self.get_state(request)
-
-        user_info_json = self.get_user_info_json(state=self.state)
+        user_info_json = self.get_user_info_json(request)
 
         naver_response = user_info_json.get("response")
         email = naver_response.get("email")
