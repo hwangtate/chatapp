@@ -6,11 +6,9 @@ from django.core import signing
 from django.core.signing import TimestampSigner, SignatureExpired
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.models import CustomUser
-from accounts.permissions import IsLoggedIn
 from accounts.serializers import SocialRegisterSerializer
 from coreapp.settings.development import GOOGLE_CONFIG
 
@@ -18,16 +16,14 @@ from coreapp.settings.development import GOOGLE_CONFIG
 class CommonDecodeSignerUser:
 
     def __init__(self):
-        self.code = None
-        self.signer = None
         self.user = None
 
     def decode_signer(self, request):
-        self.code = request.GET.get("code", "")
-        self.signer = TimestampSigner()
+        code = request.GET.get("code", "")
+        signer = TimestampSigner()
         try:
-            decoded_user_email = signing.loads(self.code)
-            email = self.signer.unsign(decoded_user_email, max_age=60 * 3)
+            decoded_user_email = signing.loads(code)
+            email = signer.unsign(decoded_user_email, max_age=60 * 3)
             self.user = CustomUser.objects.get(email=email)
 
         except SignatureExpired:
