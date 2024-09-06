@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from accounts.models import CustomUser
 from accounts.serializers import SocialRegisterSerializer
-from coreapp.settings.development import GOOGLE_CONFIG
+from coreapp.settings.development import GOOGLE_CONFIG, NAVER_CONFIG
 
 
 class CommonDecodeSignerUser:
@@ -60,30 +60,31 @@ def social_login_or_register(request, data, email, social_type, response):
 
 class SocialLogin:
 
-    def __init__(self):
-        self.client_id = None
-        self.redirect_uri = None
-        self.login_uri = None
+    @abstractmethod
+    def get_social_provider_data(self):
+        pass
 
     def social_login(self, kakao=None, google=None, naver=None):
         if kakao:
-            url = self.basic_url()
+            url = self.basic_url
             return url
 
         if google:
             scope = GOOGLE_CONFIG["SCOPE"]
-            url = self.basic_url() + f"&scope={scope}"
+            url = self.basic_url + f"&scope={scope}"
             return url
 
         if naver:
-            state = signing.dumps(self.client_id)
-            url = self.basic_url() + f"&state={state}"
+            state = signing.dumps(NAVER_CONFIG["CLIENT_ID"])
+            url = self.basic_url + f"&state={state}"
             return url
 
         return Response({"error": "invalid parameter value"}, status=status.HTTP_400_BAD_REQUEST)
 
+    @property
     def basic_url(self):
-        return f"{self.login_uri}?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
+        client_id, redirect_uri, login_uri = self.get_social_provider_data()
+        return f"{login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
 
 
 class SocialLoginCallback:

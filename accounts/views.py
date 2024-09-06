@@ -194,14 +194,15 @@ class KakaoLogin(SocialLogin, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = KAKAO_CONFIG["REST_API_KEY"]
-        self.redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
-        self.login_uri = KAKAO_CONFIG["LOGIN_URI"]
-
     def get(self, request):
         return redirect(self.social_login(kakao=True))
+
+    def get_social_provider_data(self):
+        client_id = KAKAO_CONFIG["REST_API_KEY"]
+        redirect_uri = KAKAO_CONFIG["REDIRECT_URIS"]
+        login_uri = KAKAO_CONFIG["LOGIN_URI"]
+
+        return client_id, redirect_uri, login_uri
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
@@ -209,14 +210,15 @@ class GoogleLogin(SocialLogin, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = GOOGLE_CONFIG["CLIENT_ID"]
-        self.redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
-        self.login_uri = GOOGLE_CONFIG["LOGIN_URI"]
-
     def get(self, request):
         return redirect(self.social_login(google=True))
+
+    def get_social_provider_data(self):
+        client_id = GOOGLE_CONFIG["CLIENT_ID"]
+        redirect_uri = GOOGLE_CONFIG["REDIRECT_URIS"]
+        login_uri = GOOGLE_CONFIG["LOGIN_URI"]
+
+        return client_id, redirect_uri, login_uri
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
@@ -224,14 +226,15 @@ class NaverLogin(SocialLogin, APIView):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.client_id = NAVER_CONFIG["CLIENT_ID"]
-        self.redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
-        self.login_uri = NAVER_CONFIG["LOGIN_URI"]
-
     def get(self, request):
         return redirect(self.social_login(naver=True))
+
+    def get_social_provider_data(self):
+        client_id = NAVER_CONFIG["CLIENT_ID"]
+        redirect_uri = NAVER_CONFIG["REDIRECT_URIS"]
+        login_uri = NAVER_CONFIG["LOGIN_URI"]
+
+        return client_id, redirect_uri, login_uri
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
@@ -270,7 +273,6 @@ class KakaoLoginCallback(SocialLoginCallback, APIView):
 
         token_headers = {
             "Content-type": KAKAO_CONFIG["CONTENT_TYPE"],
-            "state": self.get_state(request),
         }
 
         social_uri = {
@@ -359,6 +361,7 @@ class NaverLoginCallback(SocialLoginCallback, APIView):
 
         token_headers = {
             "Content-type": NAVER_CONFIG["CONTENT_TYPE"],
+            "state": self.get_state(request),
         }
 
         social_uri = {
