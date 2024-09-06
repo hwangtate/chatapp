@@ -7,6 +7,7 @@ from django.core.signing import TimestampSigner, SignatureExpired
 
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import CustomUser
 from accounts.serializers import SocialRegisterSerializer
@@ -39,25 +40,6 @@ class CommonDecodeSignerUser:
         pass
 
 
-def social_login_or_register(request, data, email, social_type, response):
-
-    if CustomUser.objects.filter(email=email, social_type=social_type).exists():
-        user = CustomUser.objects.get(email=email)
-        login(request, user)
-
-        return Response(response, status=status.HTTP_200_OK)
-
-    serializer = SocialRegisterSerializer(data=data)
-
-    if serializer.is_valid():
-        user = serializer.save()
-        login(request, user)
-
-        return Response(response, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class SocialLogin:
 
     @abstractmethod
@@ -87,29 +69,25 @@ class SocialLogin:
         return f"{login_uri}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
 
 
-class SocialLoginCallback:
+class SocialLoginCallback(APIView):
 
-    @staticmethod
-    def get_code(request):
-        code = request.query_params.get("code", None)
-        return code
-
-    @staticmethod
-    def get_state(request):
-        state = request.query_params.get("state", None)
-        return state
+    token_request_data = None
+    profile_uri = None
+    token_uri = None
+    code = None
+    state = None
 
     @abstractmethod
     def get_social_provider_data(self, request):
         pass
 
-    @staticmethod
-    def requests_post_token(token_uri, token_request_data, token_headers):
+    def requests_post_token(self):
+        self.token_request_data["code"] = self.code
         try:
             token_response = requests.post(
-                token_uri,
-                data=token_request_data,
-                headers=token_headers,
+                self.token_uri,
+                data=self.token_request_data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
 
             return token_response
@@ -117,22 +95,20 @@ class SocialLoginCallback:
         except Exception as e:
             return Response({"error post token": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @staticmethod
-    def transfer_token(token_response):
+    def get_access_token_from_response(self):
+        token_response = self.requests_post_token()
         token_json = token_response.json()
-        access_token = token_json.get("access_token")
-        auth_headers = {
-            "Authorization": f"Bearer {access_token}",
-        }
 
-        return auth_headers
+        return token_json.get("access_token")
 
-    @staticmethod
-    def requests_get_user(profile_uri, auth_headers):
+    def requests_get_user(self):
         try:
             user_info_response = requests.get(
-                profile_uri,
-                headers=auth_headers,
+                self.profile_uri,
+                headers={
+                    "Content-type": "application/x-www-form-urlencoded",
+                    "Authorization": f"Bearer {self.get_access_token_from_response()}",
+                },
             )
 
             return user_info_response
@@ -140,24 +116,23 @@ class SocialLoginCallback:
         except Exception as e:
             return Response({"error get user": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @staticmethod
-    def user_info_json(user_info_response):
-        user_info_data = user_info_response.json()
+    def get_user_info_json(self):
+        user_info_data = self.requests_get_user().json()
 
         return user_info_data
 
-    def get_user_info_json(self, request):
-        token_request_data, token_headers, social_uri = self.get_social_provider_data(request)
-        token_response = self.requests_post_token(social_uri["token_uri"], token_request_data, token_headers)
-        auth_headers = self.transfer_token(token_response)
-        user_info_response = self.requests_get_user(social_uri["profile_uri"], auth_headers)
+    def social_login_or_register(self, request, data):
+        if CustomUser.objects.filter(**data).exists():
+            user = CustomUser.objects.get(**data)
+            login(request, user)
 
-        user_info_data = self.user_info_json(user_info_response)
+            return Response(data=data, status=status.HTTP_200_OK)
+        serializer = SocialRegisterSerializer(data=data)
 
-        return user_info_data
+        if serializer.is_valid():
+            user = serializer.save()
+            login(request, user)
 
-    @staticmethod
-    def get_user_data(email, username, social_type):
-        user_data = {"email": email, "username": username, "social_type": social_type}
+            return Response(data=data, status=status.HTTP_200_OK)
 
-        return user_data
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

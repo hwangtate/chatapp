@@ -35,7 +35,6 @@ KAKAO_CONFIG = {
     "REDIRECT_URIS": "http://127.0.0.1:8000/account/kakao/login/callback/",
     # type
     "GRANT_TYPE": "authorization_code",
-    "CONTENT_TYPE": "application/x-www-form-urlencoded;charset=utf-8",
 }
 
 GOOGLE_CONFIG = {
@@ -50,7 +49,6 @@ GOOGLE_CONFIG = {
     "SCOPE": "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
     # type
     "GRANT_TYPE": "authorization_code",
-    "CONTENT_TYPE": "application/x-www-form-urlencoded",
     # host
     "HOST": "oauth2.googleapis.com",
 }
@@ -66,5 +64,4 @@ NAVER_CONFIG = {
     "REDIRECT_URIS": "http://127.0.0.1:8000/account/naver/login/callback/",
     # type
     "GRANT_TYPE": "authorization_code",
-    "CONTENT_TYPE": "application/x-www-form-urlencoded",
 }

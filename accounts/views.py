@@ -18,7 +18,6 @@ from accounts.serializers import (
 from accounts.mail import EmailService
 from accounts.permissions import IsEmailVerified, IsCommonUser, IsLoggedIn
 from accounts.services import (
-    social_login_or_register,
     CommonDecodeSignerUser,
     SocialLogin,
     SocialLoginCallback,
@@ -238,49 +237,34 @@ class NaverLogin(SocialLogin, APIView):
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
-class KakaoLoginCallback(SocialLoginCallback, APIView):
+class KakaoLoginCallback(SocialLoginCallback):
 
     permission_classes = (AllowAny, IsLoggedIn)
 
     def get(self, request):
-        user_info_json = self.get_user_info_json(request)
+        self.token_request_data = self.get_social_provider_data(request)
+        self.profile_uri = KAKAO_CONFIG["PROFILE_URI"]
+        self.token_uri = KAKAO_CONFIG["TOKEN_URI"]
+        self.code = request.query_params.get("code")
+        self.state = request.query_params.get("state")
+
+        user_info_json = self.get_user_info_json()
 
         kakao_account = user_info_json.get("kakao_account")
         profile = kakao_account.get("profile")
 
-        email = kakao_account.get("email")
-        username = profile.get("nickname")
-        social_type = "kakao"
+        user_data = {"email": kakao_account.get("email"), "username": profile.get("nickname"), "social_type": "kakao"}
 
-        data = self.get_user_data(email=email, username=username, social_type=social_type)
-
-        return social_login_or_register(
-            request,
-            data=data,
-            email=email,
-            social_type=social_type,
-            response=data,
-        )
+        return self.social_login_or_register(request, data=user_data)
 
     def get_social_provider_data(self, request):
-        token_request_data = {
+        provider_data = {
             "grant_type": KAKAO_CONFIG["GRANT_TYPE"],
             "client_id": KAKAO_CONFIG["REST_API_KEY"],
             "client_secret": KAKAO_CONFIG["CLIENT_SECRET_KEY"],
             "redirect_uri": KAKAO_CONFIG["REDIRECT_URIS"],
-            "code": self.get_code(request),
         }
-
-        token_headers = {
-            "Content-type": KAKAO_CONFIG["CONTENT_TYPE"],
-        }
-
-        social_uri = {
-            "token_uri": KAKAO_CONFIG["TOKEN_URI"],
-            "profile_uri": KAKAO_CONFIG["PROFILE_URI"],
-        }
-
-        return token_request_data, token_headers, social_uri
+        return provider_data
 
 
 # permission_classes = (AllowAny, IsLoggedIn)
